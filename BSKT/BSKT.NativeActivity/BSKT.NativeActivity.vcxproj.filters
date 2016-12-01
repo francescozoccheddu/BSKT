@@ -7,9 +7,6 @@
     <ClInclude Include="log.h">
       <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
     <ClInclude Include="resources.h">
       <Filter>Game</Filter>
     </ClInclude>

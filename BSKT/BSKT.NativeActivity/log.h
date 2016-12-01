@@ -1,6 +1,6 @@
-#ifndef LOGGER
+#ifndef _BSKT_LOG_H
 
-#define LOGGER
+#define _BSKT_LOG_H
 
 #include <android/log.h>
 
