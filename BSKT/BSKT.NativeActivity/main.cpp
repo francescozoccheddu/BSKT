@@ -1,4 +1,9 @@
 
+#include "android_native_app_glue.h"
+#include <android\sensor.h>
+#include <EGL\egl.h>
+#include <GLES2\gl2.h>
+
 struct saved_state {
 	float angle;
 	int32_t x;

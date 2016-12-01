@@ -1,16 +1,22 @@
 
-#ifndef RESOURCES_H
-#define RESOURCES_H
+#ifndef _BSKT_RESOURCES_H
+#define _BSKT_RESOURCES_H
+
+#include <GLES2\gl2.h>
+#include "log.h"
 
 #define NULL_RES 0
 
-struct Resources{
-	const GLuint program;
-	Resources(GLuint);
-	
-	void destroy();
-};
+namespace BSKT {
 
-Resources createResources();
+	struct Resources {
+		const GLuint program;
+		Resources(GLuint);
 
+		void destroy();
+	};
+
+	Resources createResources();
+
+}
 #endif
