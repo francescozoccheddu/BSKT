@@ -3,6 +3,7 @@
 #include <android\sensor.h>
 #include <EGL\egl.h>
 #include <GLES2\gl2.h>
+#include "resources.h"
 
 struct saved_state {
 	float angle;
@@ -117,7 +118,10 @@ static int engine_init_display(struct engine* engine) {
 
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-
+	BSKT::GLProgramSource s(engine->app->activity->assetManager, "solid2d");
+	BSKT::Mesh m(engine->app->activity->assetManager, "triangle");
+	for (int i = 0; i < m.count; i++)
+		LOGE("%f\n", m.vertices[i]);
 	return 0;
 }
 
@@ -218,7 +222,6 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 */
 void android_main(struct android_app* state) {
 	struct engine engine;
-
 	memset(&engine, 0, sizeof(engine));
 	state->userData = &engine;
 	state->onAppCmd = engine_handle_cmd;

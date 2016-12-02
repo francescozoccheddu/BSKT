@@ -129,6 +129,11 @@
       <Project>{7fcf860e-a233-47aa-9240-b5045bd86858}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <JavaCompile Include="assets\meshes\triangle" />
+    <JavaCompile Include="assets\shaders\solid2d\fragment_shader.glsl" />
+    <JavaCompile Include="assets\shaders\solid2d\vertex_shader.glsl" />
+  </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>
