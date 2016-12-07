@@ -7,6 +7,12 @@
     <ClInclude Include="log.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="assets.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.h">
+      <Filter>Game</Filter>
+    </ClInclude>
     <ClInclude Include="resources.h">
       <Filter>Game</Filter>
     </ClInclude>
@@ -17,6 +23,12 @@
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="assets.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="matrix.cpp">
+      <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="resources.cpp">
       <Filter>Game</Filter>
