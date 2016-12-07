@@ -1,9 +1,8 @@
-
 #include "android_native_app_glue.h"
 #include <android\sensor.h>
 #include <EGL\egl.h>
 #include <GLES2\gl2.h>
-#include "resources.h"
+#include "assets.h"
 
 struct saved_state {
 	float angle;
@@ -118,8 +117,7 @@ static int engine_init_display(struct engine* engine) {
 
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-	BSKT::GLProgramSource s(engine->app->activity->assetManager, "solid2d");
-	BSKT::Mesh m(engine->app->activity->assetManager, "triangle");
+	BSKT::Mesh m = BSKT::parseMesh(engine->app->activity->assetManager, "triangle");
 	for (int i = 0; i < m.count; i++)
 		LOGE("%f\n", m.vertices[i]);
 	return 0;
