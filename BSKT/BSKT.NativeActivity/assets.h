@@ -15,35 +15,43 @@
 
 #define MESHES_DIR "meshes"
 #define MESH_VERT_SEP ','
+#define MESH_VERTICES_FILE "vertices.bsktm"
+#define MESH_INDICES_FILE "indices.bsktm"
 
 namespace BSKT {
 
-	struct GLProgramSource {
-		const char *vertexShader;
-		const char *fragmentShader;
-	};
+	namespace Assets {
 
-	const GLProgramSource parseProgramSource(const AAssetManager*, const char*);
+		struct GLProgramSource {
+			const char *vertexShader;
+			const char *fragmentShader;
+		};
 
-	struct Mesh {
-		const float *vertices;
-	    int count;
-	};
+		const GLProgramSource parseProgramSource(const AAssetManager *assets, const char *name);
 
-	const Mesh parseMesh(const AAssetManager*, const char*);
+		struct Mesh {
+			const float *vertices;
+			int vertsCount;
+			const int *indices;
+			int indsCount;
+		};
 
-	struct MeshBatch {
-		const float *vertices;
-		int count;
-	};
+		const Mesh parseMesh(const AAssetManager *assets, const char *name);
+		const Mesh createMeshBatch(const Mesh *meshes, int count, int stride);
 
-	struct Assets {
-		GLProgramSource programSource;
-	};
+		struct Pack {
+			GLProgramSource programSource;
+			Mesh meshBatch;
+		};
 
-	const char* parseFile(const char*, const AAssetManager*);
-	const char* parseFile(const char**, int, const AAssetManager*);
-	const char** splitString(const char*, int&, char);
+		const Pack createPack(const AAssetManager *assets);
+
+		const char *parseFile(const AAssetManager *assets, const char *filename);
+		const char *parseFile(const AAssetManager *assets, const char **filepath, int pathSize);
+		const char **splitString(const char *string, int &tokensCount, char delimiter);
+		void deleteSplitString(const char **string);
+
+	}
 
 }
 #endif

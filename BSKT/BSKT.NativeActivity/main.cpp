@@ -2,173 +2,41 @@
 #include <android\sensor.h>
 #include <EGL\egl.h>
 #include <GLES2\gl2.h>
+#include "glcontext.h"
 #include "assets.h"
+#include "state.h"
 
-struct saved_state {
-	float angle;
-	int32_t x;
-	int32_t y;
+BSKT::Assets::Pack *assets = NULL;
+
+struct Engine {
+	bsktState state;
+	BSKT::GLEnv::Env env;
 };
 
-struct engine {
-	struct android_app* app;
-
-	ASensorManager* sensorManager;
-	const ASensor* accelerometerSensor;
-	ASensorEventQueue* sensorEventQueue;
-
-	int animating;
-	EGLDisplay display;
-	EGLSurface surface;
-	EGLContext context;
-	int32_t width;
-	int32_t height;
-	struct saved_state state;
-};
-
-static int engine_init_display(struct engine* engine) {
-
-	EGLint w, h;
-	EGLSurface surface;
-	EGLContext context;
-	EGLDisplay display;
-
-	if ((display = eglGetDisplay(EGL_DEFAULT_DISPLAY)) == EGL_NO_DISPLAY) {
-		LOGE("No display");
-		return -1;
-	}
-
-	if (!eglInitialize(display, 0, 0)) {
-		if (eglGetError() == EGL_BAD_DISPLAY)
-			LOGE("EGL bad display");
-		LOGE("EGL not initialized");
-		return -1;
-	}
-
-	EGLConfig config;
-	{
-		EGLint numConfigs;
-		const EGLint attribs[] = {
-			EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-			EGL_BLUE_SIZE, 8,
-			EGL_GREEN_SIZE, 8,
-			EGL_RED_SIZE, 8,
-			EGL_NONE
-		};
-		eglChooseConfig(display, attribs, &config, 1, &numConfigs);
-		EGLint format;
-		eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-		ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
-	}
-
-	{
-		const EGLint attribList[] = {
-			EGL_RENDER_BUFFER, EGL_BACK_BUFFER, 
-			EGL_NONE
-		};
-		if ((surface = eglCreateWindowSurface(display, config, engine->app->window, attribList)) == EGL_NO_SURFACE) {
-			switch (eglGetError())
-			{
-			case EGL_BAD_MATCH:
-				LOGE("EGL bad match");
-				break;
-			case EGL_BAD_CONFIG:
-				LOGE("EGL bad config");
-				break;
-			case EGL_BAD_NATIVE_WINDOW:
-				LOGE("EGL bad native window");
-				break;
-			case EGL_BAD_ALLOC:
-				LOGE("EGL bad alloc");
-				break;
-			}
-			LOGE("No surface created");
-			return -1;
-		}
-	}
-
-	{
-		const EGLint attribList[] = {
-			EGL_CONTEXT_CLIENT_VERSION, 2,
-			EGL_NONE
-		};
-		if ((context = eglCreateContext(display, config, EGL_NO_CONTEXT, attribList)) == EGL_NO_CONTEXT) {
-			if (eglGetError() == EGL_BAD_CONFIG)
-				LOGE("EGL bad config");
-			LOGE("No context created");
-			return -1;
-		}
-	}
-
-	if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
-		LOGE("Unable to eglMakeCurrent");
-		return -1;
-	}
-
-	eglQuerySurface(display, surface, EGL_WIDTH, &w);
-	eglQuerySurface(display, surface, EGL_HEIGHT, &h);
-
-	engine->display = display;
-	engine->context = context;
-	engine->surface = surface;
-	engine->width = w;
-	engine->height = h;
-	engine->state.angle = 0;
-
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	BSKT::Mesh m = BSKT::parseMesh(engine->app->activity->assetManager, "triangle");
-	for (int i = 0; i < m.count; i++)
-		LOGE("%f\n", m.vertices[i]);
-	return 0;
-}
-
-/**
-* Just the current frame in the display.
-*/
-static void engine_draw_frame(struct engine* engine) {
-	if (engine->display == NULL) {
+static void engine_draw_frame(Engine* engine) {
+	if (engine->env.display == NULL) {
 		// No display.
 		return;
 	}
 
 	// Just fill the screen with a color.
-	glClearColor(((float)engine->state.x) / engine->width, engine->state.angle,
-		((float)engine->state.y) / engine->height, 1);
+	glClearColor(0.0,1.0,1.0,1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	eglSwapBuffers(engine->display, engine->surface);
-}
-
-static void engine_term_display(struct engine* engine) {
-	if (engine->display != EGL_NO_DISPLAY) {
-		eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		if (engine->context != EGL_NO_CONTEXT) {
-			eglDestroyContext(engine->display, engine->context);
-		}
-		if (engine->surface != EGL_NO_SURFACE) {
-			eglDestroySurface(engine->display, engine->surface);
-		}
-		eglTerminate(engine->display);
-	}
-	engine->animating = 0;
-	engine->display = EGL_NO_DISPLAY;
-	engine->context = EGL_NO_CONTEXT;
-	engine->surface = EGL_NO_SURFACE;
+	eglSwapBuffers(engine->env.display, engine->env.surface);
 }
 
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
-	struct engine* engine = (struct engine*)app->userData;
+	Engine* engine = (Engine*)app->userData;
 	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-		engine->state.x = AMotionEvent_getX(event, 0);
-		engine->state.y = AMotionEvent_getY(event, 0);
+		//TODO
 		return 1;
 	}
 	return 0;
 }
 
 static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
-	struct engine* engine = (struct engine*)app->userData;
+	Engine* engine = (Engine*)app->userData;
 	switch (cmd) {
 		case APP_CMD_WINDOW_RESIZED:
 			
@@ -176,38 +44,25 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		case APP_CMD_PAUSE:
 			break;
 		case APP_CMD_SAVE_STATE:
-			engine->app->savedState = malloc(sizeof(struct saved_state));
-			*((struct saved_state*)engine->app->savedState) = engine->state;
-			engine->app->savedStateSize = sizeof(struct saved_state);
+			app->savedState = malloc(sizeof(bsktState));
+			*((bsktState*)app->savedState) = engine->state;
+			app->savedStateSize = sizeof(bsktState);
 			break;
 		case APP_CMD_INIT_WINDOW:
-			if (engine->app->window != NULL) {
-				engine_init_display(engine);
+			if (app->window != NULL) {
+				engine->env = BSKT::GLEnv::initialize(app, assets);
 				engine_draw_frame(engine);
 			}
 			break;
 		case APP_CMD_TERM_WINDOW:
-			engine_term_display(engine);
+			BSKT::GLEnv::terminate(&engine->env);
 			break;
 		case APP_CMD_GAINED_FOCUS:
 			// When our app gains focus, we start monitoring the accelerometer.
-			if (engine->accelerometerSensor != NULL) {
-				ASensorEventQueue_enableSensor(engine->sensorEventQueue,
-					engine->accelerometerSensor);
-				// We'd like to get 60 events per second (in us).
-				ASensorEventQueue_setEventRate(engine->sensorEventQueue,
-					engine->accelerometerSensor, (1000L / 60) * 1000);
-			}
 			break;
 		case APP_CMD_LOST_FOCUS:
 			// When our app loses focus, we stop monitoring the accelerometer.
 			// This is to avoid consuming battery while not being used.
-			if (engine->accelerometerSensor != NULL) {
-				ASensorEventQueue_disableSensor(engine->sensorEventQueue,
-					engine->accelerometerSensor);
-			}
-			// Also stop animating.
-			engine->animating = 0;
 			engine_draw_frame(engine);
 			break;
 	}
@@ -218,29 +73,20 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 * android_native_app_glue.  It runs in its own thread, with its own
 * event loop for receiving input events and doing other things.
 */
-void android_main(struct android_app* state) {
-	struct engine engine;
-	memset(&engine, 0, sizeof(engine));
-	state->userData = &engine;
-	state->onAppCmd = engine_handle_cmd;
-	state->onInputEvent = engine_handle_input;
-	engine.app = state;
+void android_main(struct android_app* app) {
 
-	// Prepare to monitor accelerometer
-	engine.sensorManager = ASensorManager_getInstance();
-	engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
-		ASENSOR_TYPE_ACCELEROMETER);
-	engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager,
-		state->looper, LOOPER_ID_USER, NULL, NULL);
+	if (assets == NULL)
+		assets = new BSKT::Assets::Pack(BSKT::Assets::createPack(app->activity->assetManager));
 
-	if (state->savedState != NULL) {
-		// We are starting with a previous saved state; restore from it.
-		engine.state = *(struct saved_state*)state->savedState;
-	}
+	Engine engine;
 
-	engine.animating = 1;
+	memset(&engine, 0, sizeof(Engine));
+	app->userData = &engine;
+	app->onAppCmd = engine_handle_cmd;
+	app->onInputEvent = engine_handle_input;
 
-	// loop waiting for stuff to do.
+	if (app->savedState != NULL) 
+		engine.state = *(bsktState*) app->savedState;
 
 	while (true) {
 		// Read all pending events.
@@ -251,40 +97,23 @@ void android_main(struct android_app* state) {
 		// If not animating, we will block forever waiting for events.
 		// If animating, we loop until all events are read, then continue
 		// to draw the next frame of animation.
-		while ((ident = ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events,
+		while ((ident = ALooper_pollAll(engine.env.ready ? 0 : -1, NULL, &events,
 			(void**)&source)) >= 0) {
 
 			// Process this event.
 			if (source != NULL) {
-				source->process(state, source);
-			}
-
-			// If a sensor has data, process it now.
-			if (ident == LOOPER_ID_USER) {
-				if (engine.accelerometerSensor != NULL) {
-					ASensorEvent event;
-					while (ASensorEventQueue_getEvents(engine.sensorEventQueue,
-						&event, 1) > 0) {
-						LOGI("accelerometer: x=%f y=%f z=%f",
-							event.acceleration.x, event.acceleration.y,
-							event.acceleration.z);
-					}
-				}
+				source->process(app, source);
 			}
 
 			// Check if we are exiting.
-			if (state->destroyRequested != 0) {
-				engine_term_display(&engine);
+			if (app->destroyRequested != 0) {
+				BSKT::GLEnv::terminate(&engine.env);
 				return;
 			}
 		}
 
-		if (engine.animating) {
+		if (engine.env.ready) {
 			// Done with events; draw next animation frame.
-			engine.state.angle += .01f;
-			if (engine.state.angle > 1) {
-				engine.state.angle = 0;
-			}
 
 			// Drawing is throttled to the screen update rate, so there
 			// is no need to do timing here.
