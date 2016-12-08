@@ -13,7 +13,10 @@
     <ClInclude Include="matrix.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="resources.h">
+    <ClInclude Include="glcontext.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="state.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
@@ -24,13 +27,16 @@
     <ClCompile Include="main.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="assets.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="matrix.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="resources.cpp">
+    <ClCompile Include="glcontext.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="assets.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="state.cpp">
       <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
