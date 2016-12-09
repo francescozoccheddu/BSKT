@@ -1,33 +1,25 @@
 #include "android_native_app_glue.h"
-#include <android\sensor.h>
 #include <EGL\egl.h>
-#include <GLES2\gl2.h>
-#include "glcontext.h"
-#include "assets.h"
-#include "state.h"
+#include "bkEnv.h"
+#include "bkAssets.h"
+#include "bkState.h"
 
-BSKT::Assets::Pack *assets = NULL;
+bkAssetPack *assetPack = NULL;
 
-struct Engine {
-	bsktState state;
-	BSKT::GLEnv::Env env;
-};
+typedef struct {
+	bkGameState gameState;
+	bkEnv env;
+} bkEngine;
 
-static void engine_draw_frame(Engine* engine) {
-	if (engine->env.display == NULL) {
-		// No display.
+static void bk_drawFrame(bkEngine* engine) {
+	if (engine->env.display == NULL) 
 		return;
-	}
-
-	// Just fill the screen with a color.
-	glClearColor(0.0,1.0,1.0,1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
 
 	eglSwapBuffers(engine->env.display, engine->env.surface);
 }
 
-static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
-	Engine* engine = (Engine*)app->userData;
+static int32_t bk_handleInput(struct android_app* app, AInputEvent* event) {
+	bkEngine* engine = (bkEngine*)app->userData;
 	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
 		//TODO
 		return 1;
@@ -35,8 +27,8 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 	return 0;
 }
 
-static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
-	Engine* engine = (Engine*)app->userData;
+static void bk_handleCmd(struct android_app* app, int32_t cmd) {
+	bkEngine* engine = (bkEngine*)app->userData;
 	switch (cmd) {
 		case APP_CMD_WINDOW_RESIZED:
 			
@@ -44,18 +36,18 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		case APP_CMD_PAUSE:
 			break;
 		case APP_CMD_SAVE_STATE:
-			app->savedState = malloc(sizeof(bsktState));
-			*((bsktState*)app->savedState) = engine->state;
-			app->savedStateSize = sizeof(bsktState);
+			app->savedState = malloc(sizeof(bkGameState));
+			*((bkGameState*) app->savedState) = engine->gameState;
+			app->savedStateSize = sizeof(bkGameState);
 			break;
 		case APP_CMD_INIT_WINDOW:
 			if (app->window != NULL) {
-				engine->env = BSKT::GLEnv::initialize(app, assets);
-				engine_draw_frame(engine);
+				engine->env = bkEnv_init(app, assetPack);
+				bk_drawFrame(engine);
 			}
 			break;
 		case APP_CMD_TERM_WINDOW:
-			BSKT::GLEnv::terminate(&engine->env);
+			bkGLEnv_term(&engine->env);
 			break;
 		case APP_CMD_GAINED_FOCUS:
 			// When our app gains focus, we start monitoring the accelerometer.
@@ -63,32 +55,29 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		case APP_CMD_LOST_FOCUS:
 			// When our app loses focus, we stop monitoring the accelerometer.
 			// This is to avoid consuming battery while not being used.
-			engine_draw_frame(engine);
+			bk_drawFrame(engine);
 			break;
 	}
 }
 
-/**
-* This is the main entry point of a native application that is using
-* android_native_app_glue.  It runs in its own thread, with its own
-* event loop for receiving input events and doing other things.
-*/
 void android_main(struct android_app* app) {
 
-	if (assets == NULL)
-		assets = new BSKT::Assets::Pack(BSKT::Assets::createPack(app->activity->assetManager));
+	if (assetPack == NULL) {
+		assetPack = malloc(sizeof(bkAssetPack));
+		*assetPack = bkAssetPack_load(app->activity->assetManager);
+	}
 
-	Engine engine;
+	bkEngine engine;
 
-	memset(&engine, 0, sizeof(Engine));
+	memset(&engine, 0, sizeof(bkEngine));
 	app->userData = &engine;
-	app->onAppCmd = engine_handle_cmd;
-	app->onInputEvent = engine_handle_input;
+	app->onAppCmd = bk_handleCmd;
+	app->onInputEvent = bk_handleInput;
 
 	if (app->savedState != NULL) 
-		engine.state = *(bsktState*) app->savedState;
+		engine.gameState = *(bkGameState*) app->savedState;
 
-	while (true) {
+	while (1) {
 		// Read all pending events.
 		int ident;
 		int events;
@@ -107,7 +96,7 @@ void android_main(struct android_app* app) {
 
 			// Check if we are exiting.
 			if (app->destroyRequested != 0) {
-				BSKT::GLEnv::terminate(&engine.env);
+				bkGLEnv_term(&engine.env);
 				return;
 			}
 		}
@@ -117,7 +106,7 @@ void android_main(struct android_app* app) {
 
 			// Drawing is throttled to the screen update rate, so there
 			// is no need to do timing here.
-			engine_draw_frame(&engine);
+			bk_drawFrame(&engine);
 		}
 	}
 }

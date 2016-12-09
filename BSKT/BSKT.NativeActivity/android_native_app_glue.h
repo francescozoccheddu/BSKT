@@ -2,6 +2,7 @@
 #define _ANDROID_NATIVE_APP_GLUE_H
 
 #include <cstddef>
+#include <errno.h>
 #include <unistd.h>
 #include "log.h"
 #include <poll.h>
