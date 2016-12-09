@@ -129,6 +129,7 @@
       </PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
       <AdditionalIncludeDirectories>C:\Users\fzfra\OneDrive\VisualStudioProjects\BSKT\Bullet\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CLanguageStandard>Default</CLanguageStandard>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv2;EGL;m;</LibraryDependencies>
@@ -141,6 +142,7 @@
       </PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
       <AdditionalIncludeDirectories>C:\Users\fzfra\OneDrive\VisualStudioProjects\BSKT\Bullet\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CLanguageStandard>Default</CLanguageStandard>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv2;EGL;m;</LibraryDependencies>
@@ -153,6 +155,7 @@
       </PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
       <AdditionalIncludeDirectories>C:\Users\fzfra\OneDrive\VisualStudioProjects\BSKT\Bullet\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CLanguageStandard>Default</CLanguageStandard>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv1_CM;EGL;</LibraryDependencies>
@@ -165,6 +168,7 @@
       </PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
       <AdditionalIncludeDirectories>C:\Users\fzfra\OneDrive\VisualStudioProjects\BSKT\Bullet\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CLanguageStandard>Default</CLanguageStandard>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv1_CM;EGL;</LibraryDependencies>
@@ -177,6 +181,7 @@
       </PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
       <AdditionalIncludeDirectories>C:\Users\fzfra\OneDrive\VisualStudioProjects\BSKT\Bullet\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CLanguageStandard>Default</CLanguageStandard>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv1_CM;EGL;</LibraryDependencies>
@@ -189,6 +194,7 @@
       </PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
       <AdditionalIncludeDirectories>C:\Users\fzfra\OneDrive\VisualStudioProjects\BSKT\Bullet\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CLanguageStandard>Default</CLanguageStandard>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv1_CM;EGL;</LibraryDependencies>
@@ -201,6 +207,7 @@
       </PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
       <AdditionalIncludeDirectories>C:\Users\fzfra\OneDrive\VisualStudioProjects\BSKT\Bullet\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CLanguageStandard>Default</CLanguageStandard>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv1_CM;EGL;</LibraryDependencies>
@@ -213,26 +220,95 @@
       </PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
       <AdditionalIncludeDirectories>C:\Users\fzfra\OneDrive\VisualStudioProjects\BSKT\Bullet\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CLanguageStandard>Default</CLanguageStandard>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv1_CM;EGL;</LibraryDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="assets.h" />
-    <ClInclude Include="state.h" />
+    <ClInclude Include="bkAssets.h" />
+    <ClInclude Include="bkState.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="android_native_app_glue.h" />
-    <ClInclude Include="matrix.h" />
-    <ClInclude Include="glcontext.h" />
+    <ClInclude Include="bkMatrix.h" />
+    <ClInclude Include="bkEnv.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
-    <ClCompile Include="assets.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="matrix.cpp" />
-    <ClCompile Include="glcontext.cpp" />
-    <ClCompile Include="state.cpp" />
+    <ClCompile Include="bkAssets.c">
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x86'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">c89</CLanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="main.c" />
+    <ClCompile Include="bkMatrix.c">
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x86'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">c89</CLanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="bkEnv.c">
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x86'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">c89</CLanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="bkState.c">
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x86'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">c89</CLanguageStandard>
+      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">c89</CLanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Bullet\Bullet.vcxproj">

@@ -1,5 +1,4 @@
 #ifndef _BSKT_LOG_H
-
 #define _BSKT_LOG_H
 
 #include <android/log.h>

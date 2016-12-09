@@ -7,37 +7,37 @@
     <ClInclude Include="log.h">
       <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="assets.h">
-      <Filter>Game</Filter>
+    <ClInclude Include="bkAssets.h">
+      <Filter>Game\headers</Filter>
     </ClInclude>
-    <ClInclude Include="matrix.h">
-      <Filter>Game</Filter>
+    <ClInclude Include="bkState.h">
+      <Filter>Game\headers</Filter>
     </ClInclude>
-    <ClInclude Include="glcontext.h">
-      <Filter>Game</Filter>
+    <ClInclude Include="bkEnv.h">
+      <Filter>Game\headers</Filter>
     </ClInclude>
-    <ClInclude Include="state.h">
-      <Filter>Game</Filter>
+    <ClInclude Include="bkMatrix.h">
+      <Filter>Game\headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="main.c">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="matrix.cpp">
-      <Filter>Game</Filter>
+    <ClCompile Include="bkAssets.c">
+      <Filter>Game\sources</Filter>
     </ClCompile>
-    <ClCompile Include="glcontext.cpp">
-      <Filter>Game</Filter>
+    <ClCompile Include="bkState.c">
+      <Filter>Game\sources</Filter>
     </ClCompile>
-    <ClCompile Include="assets.cpp">
-      <Filter>Game</Filter>
+    <ClCompile Include="bkEnv.c">
+      <Filter>Game\sources</Filter>
     </ClCompile>
-    <ClCompile Include="state.cpp">
-      <Filter>Game</Filter>
+    <ClCompile Include="bkMatrix.c">
+      <Filter>Game\sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -49,6 +49,12 @@
     </Filter>
     <Filter Include="Bullet">
       <UniqueIdentifier>{9d2d3355-d18e-4d7c-9987-1ce1c15e1f22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\headers">
+      <UniqueIdentifier>{5f456fe7-3dd4-4995-a323-2d26d7675997}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\sources">
+      <UniqueIdentifier>{c166e200-f230-4fab-9050-cc4f6c1d6243}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
