@@ -1,7 +1,7 @@
 #include "bkAssets.h"
 
-const bkGLProgSrc bkGLProgSrc_load(AAssetManager *assets, const char *name) {
-	bkGLProgSrc ps;
+const bkProgSrc bkProgSrc_load(AAssetManager *assets, const char *name) {
+	bkProgSrc ps;
 	const char *path[] = { SHADERS_DIR, name, VERTEX_SHADER_FILE };
 	ps.vertexShader = bkAssets_loadp(assets, path, 3);
 	path[2] = FRAGMENT_SHADER_FILE;
@@ -15,10 +15,10 @@ const bkMesh bkMesh_load(AAssetManager *assets, const char *name) {
 	{
 		char *vertsStr = bkAssets_loadp(assets, path, 3);
 		char **vertsStrs = bkAssets_splitStr(vertsStr, &m.vertsCount, MESH_VERT_SEP);
-		float *verts = malloc(sizeof(float) * m.vertsCount);
+		GLfloat *verts = malloc(sizeof(GLfloat) * m.vertsCount);
 		int i;
 		for (i = 0; i < m.vertsCount; i++)
-			verts[i] = atof(vertsStrs[i]);
+			verts[i] = (GLfloat) atof(vertsStrs[i]);
 		m.vertices = verts;
 		free(vertsStr);
 		bkAssets_freeSplitStr(vertsStrs);
@@ -27,10 +27,10 @@ const bkMesh bkMesh_load(AAssetManager *assets, const char *name) {
 	{
 		char *indsStr = bkAssets_loadp(assets, path, 3);
 		char **indsStrs = bkAssets_splitStr(indsStr, &m.indsCount, MESH_VERT_SEP);
-		int *inds = malloc(sizeof(int) * m.indsCount);
+		GLushort *inds = malloc(sizeof(GLushort) * m.indsCount);
 		int i;
 		for (i = 0; i < m.indsCount; i++)
-			inds[i] = atoi(indsStrs[i]);
+			inds[i] = (GLushort) atoi(indsStrs[i]);
 		m.indices = inds;
 		free(indsStr);
 		bkAssets_freeSplitStr(indsStrs);
@@ -42,11 +42,11 @@ const bkMesh bkMesh_batch(const bkMesh *parts, int count, int stride) {
 	bkMesh m;
 	{
 		int len = 0, p;
-		float *verts, *v;
+		GLfloat *verts, *v;
 		for (p = 0; p < count; p++)
 			len += parts[p].vertsCount;
 		len = len / stride * (stride + 1);
-		verts = malloc(sizeof(float) * len);
+		verts = malloc(sizeof(GLfloat) * len);
 		v = verts;
 		for (p = 0; p < count; p++) {
 			const bkMesh part = parts[p];
@@ -62,10 +62,10 @@ const bkMesh bkMesh_batch(const bkMesh *parts, int count, int stride) {
 	}
 	{
 		int len = 0, p, offset = 0;
-		int *inds, *i;
+		GLushort *inds, *i;
 		for (p = 0; p < count; p++)
 			len += parts[p].indsCount;
-		inds = malloc(sizeof(int) * len);
+		inds = malloc(sizeof(GLushort) * len);
 		i = inds;
 		for (p = 0; p < count; p++) {
 			const bkMesh part = parts[p];
@@ -83,9 +83,9 @@ const bkMesh bkMesh_batch(const bkMesh *parts, int count, int stride) {
 const bkAssetPack bkAssetPack_load(AAssetManager *assets)
 {
 	bkAssetPack p;
-	p.programSource = bkGLProgSrc_load(assets, "solid2d");
-	bkMesh triangle = bkMesh_load(assets, "triangle");
-	p.meshBatch = bkMesh_batch((const bkMesh[]) { triangle }, 1, 2);
+	p.programSource = bkProgSrc_load(assets, "solid2d");
+	bkMesh triangle = bkMesh_load(assets, "suzanne");
+	p.meshBatch = bkMesh_batch((const bkMesh[]) { triangle }, 1, 3);
 	return p;
 }
 

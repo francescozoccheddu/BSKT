@@ -1,0 +1,3 @@
+#define MATH_3D_IMPLEMENTATION
+#include "math3D.h"
+#undef MATH_3D_IMPLEMENTATION

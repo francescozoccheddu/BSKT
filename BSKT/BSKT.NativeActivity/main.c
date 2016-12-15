@@ -7,14 +7,22 @@
 bkAssetPack *assetPack = NULL;
 
 typedef struct {
-	bkGameState gameState;
+	bkState state;
 	bkEnv env;
 } bkEngine;
 
 static void bk_drawFrame(bkEngine* engine) {
 	if (engine->env.display == NULL) 
 		return;
-
+	glClearColor(0.0, 1.0, 1.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	engine->state.scene.cam.position = (bkVec) {
+		1.0, 2.0, 4.0
+	};
+	engine->state.scene.cam.target = (bkVec) {
+		0.0, 0.0, 0.0
+	};
+	bkEnv_draw(&engine->env, &(engine->state.scene));
 	eglSwapBuffers(engine->env.display, engine->env.surface);
 }
 
@@ -36,9 +44,9 @@ static void bk_handleCmd(struct android_app* app, int32_t cmd) {
 		case APP_CMD_PAUSE:
 			break;
 		case APP_CMD_SAVE_STATE:
-			app->savedState = malloc(sizeof(bkGameState));
-			*((bkGameState*) app->savedState) = engine->gameState;
-			app->savedStateSize = sizeof(bkGameState);
+			app->savedState = malloc(sizeof(bkState));
+			*((bkState*) app->savedState) = engine->state;
+			app->savedStateSize = sizeof(bkState);
 			break;
 		case APP_CMD_INIT_WINDOW:
 			if (app->window != NULL) {
@@ -47,7 +55,7 @@ static void bk_handleCmd(struct android_app* app, int32_t cmd) {
 			}
 			break;
 		case APP_CMD_TERM_WINDOW:
-			bkGLEnv_term(&engine->env);
+			bkEnv_term(&engine->env);
 			break;
 		case APP_CMD_GAINED_FOCUS:
 			// When our app gains focus, we start monitoring the accelerometer.
@@ -75,7 +83,7 @@ void android_main(struct android_app* app) {
 	app->onInputEvent = bk_handleInput;
 
 	if (app->savedState != NULL) 
-		engine.gameState = *(bkGameState*) app->savedState;
+		engine.state = *(bkState*) app->savedState;
 
 	while (1) {
 		// Read all pending events.
@@ -96,7 +104,7 @@ void android_main(struct android_app* app) {
 
 			// Check if we are exiting.
 			if (app->destroyRequested != 0) {
-				bkGLEnv_term(&engine.env);
+				bkEnv_term(&engine.env);
 				return;
 			}
 		}
