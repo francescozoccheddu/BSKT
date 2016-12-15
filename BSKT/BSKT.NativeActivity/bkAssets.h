@@ -6,6 +6,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <GLES2\gl2.h>
 
 #define FILE_SEP "/"
 
@@ -25,14 +26,14 @@ extern "C" {
 	typedef struct {
 		char *vertexShader;
 		char *fragmentShader;
-	} bkGLProgSrc;
+	} bkProgSrc;
 
-	const bkGLProgSrc bkGLProgSrc_load(AAssetManager *assets, const char *name);
+	const bkProgSrc bkProgSrc_load(AAssetManager *assets, const char *name);
 
 	typedef struct {
-		float *vertices;
+		GLfloat *vertices;
 		int vertsCount;
-		int *indices;
+		GLushort *indices;
 		int indsCount;
 	} bkMesh;
 
@@ -40,7 +41,7 @@ extern "C" {
 	const bkMesh bkMesh_batch(const bkMesh *meshes, int count, int stride);
 
 	typedef struct {
-		bkGLProgSrc programSource;
+		bkProgSrc programSource;
 		bkMesh meshBatch;
 	} bkAssetPack;
 

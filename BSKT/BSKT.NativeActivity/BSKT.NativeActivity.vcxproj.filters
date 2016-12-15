@@ -16,7 +16,10 @@
     <ClInclude Include="bkEnv.h">
       <Filter>Game\headers</Filter>
     </ClInclude>
-    <ClInclude Include="bkMatrix.h">
+    <ClInclude Include="bkSpace.h">
+      <Filter>Game\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="math3D.h">
       <Filter>Game\headers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -36,7 +39,10 @@
     <ClCompile Include="bkEnv.c">
       <Filter>Game\sources</Filter>
     </ClCompile>
-    <ClCompile Include="bkMatrix.c">
+    <ClCompile Include="bkSpace.c">
+      <Filter>Game\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="math3D.c">
       <Filter>Game\sources</Filter>
     </ClCompile>
   </ItemGroup>

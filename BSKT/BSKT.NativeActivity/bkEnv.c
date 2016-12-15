@@ -71,7 +71,6 @@ static GLuint bk_createProgram(const char *vertexSource, const char *fragmentSou
 
 static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 
-	EGLint w, h;
 	EGLSurface surface;
 	EGLContext context;
 	EGLDisplay display;
@@ -148,17 +147,19 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 		return 0;
 	}
 
-	eglQuerySurface(display, surface, EGL_WIDTH, &w);
-	eglQuerySurface(display, surface, EGL_HEIGHT, &h);
 
 	env->display = display;
 	env->context = context;
 	env->surface = surface;
-	env->width = w;
-	env->height = h;
 
-	glEnable(GL_CULL_FACE);
+	bkEnv_viewport(env);
+
+	glEnable (GL_CULL_FACE);
+	//TODO RIMUOVILOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO!!!!!!OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO!111o
+	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
 	return 1;
 }
@@ -166,11 +167,35 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 {
 	bkEnv env;
-	env.valid = bk_initDisp(app, &env);
+	if (bk_initDisp(app, &env)) {
+		bkProgDiffuse p;
+		p.program = bk_createProgram(pack->programSource.vertexShader, pack->programSource.fragmentShader);
+		if (p.program == 0)
+			return env;
+		glUseProgram(p.program);
+		p.attrPosition = glGetAttribLocation(p.program, "a_position");
+		p.attrIndex = glGetAttribLocation(p.program, "a_index");
+		p.unifProjection = glGetUniformLocation(p.program, "u_projection");
+		p.unifTransform[0] = glGetUniformLocation(p.program, "u_transform[0]");
+		glUseProgram(0);
+		GLuint *buf = malloc(sizeof(GLuint) * 2);
+		glGenBuffers(2, buf);
+		glBindBuffer(GL_ARRAY_BUFFER, buf[0]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * pack->meshBatch.vertsCount, pack->meshBatch.vertices, GL_STATIC_DRAW);
+		p.vbo = buf[0];
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf[1]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * pack->meshBatch.indsCount, pack->meshBatch.indices, GL_STATIC_DRAW);
+		p.ibo = buf[1];
+		free(buf);
+		p.indsCount = pack->meshBatch.indsCount;
+		env.programDiffuse = p;
+		env.valid = 1;
+		env.ready = 1;
+	}
 	return env;
 }
 
-void bkGLEnv_term(bkEnv *env)
+void bkEnv_term(bkEnv *env)
 {
 	if (env->display != EGL_NO_DISPLAY) {
 		eglMakeCurrent(env->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -187,3 +212,34 @@ void bkGLEnv_term(bkEnv *env)
 	env->context = EGL_NO_CONTEXT;
 	env->surface = EGL_NO_SURFACE;
 }
+
+void bkEnv_viewport(bkEnv * env)
+{
+	eglQuerySurface(env->display, env->surface, EGL_WIDTH, &env->width);
+	eglQuerySurface(env->display, env->surface, EGL_HEIGHT, &env->height);
+	glViewport(0, 0, env->width, env->height);
+}
+
+float a = 0;
+
+void bkEnv_draw(bkEnv * env, bkSceneState * state)
+{
+	glUseProgram(env->programDiffuse.program);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->programDiffuse.ibo);
+	glBindBuffer(GL_ARRAY_BUFFER, env->programDiffuse.vbo);
+	glEnableVertexAttribArray(env->programDiffuse.attrPosition);
+	glEnableVertexAttribArray(env->programDiffuse.attrIndex);
+	glVertexAttribPointer(env->programDiffuse.attrPosition, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (const void*) 0);
+	glVertexAttribPointer(env->programDiffuse.attrIndex, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (const void*) (3 * sizeof(GLfloat)));
+	bkMat idt = bkMat_idt ();
+	bkMat proj = bkMat_proj (&state->cam, env->width, env->height);
+	bkMat view = bkMat_view (&state->cam);
+	bkMat comb = bkMat_mul (&proj, &view);
+	a += 1 * TO_RAD;
+	bkMat c = m4_rotation_y (a);
+	glUniformMatrix4fv(env->programDiffuse.unifProjection, 1, GL_FALSE, (GLfloat *) &comb);
+	glUniformMatrix4fv(env->programDiffuse.unifTransform[0], 1, GL_FALSE, (GLfloat *) &c);
+	glDrawElements(GL_TRIANGLES, env->programDiffuse.indsCount, GL_UNSIGNED_SHORT, 0);
+	glUseProgram(0);
+}
+

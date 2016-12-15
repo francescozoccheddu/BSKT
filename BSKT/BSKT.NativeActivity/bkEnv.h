@@ -6,6 +6,8 @@
 #include <GLES2\gl2.h>
 #include "log.h"
 #include "bkAssets.h"
+#include "bkSpace.h"
+#include "bkState.h"
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -13,10 +15,19 @@ extern "C" {
 #endif
 
 	typedef struct {
-		int valid;
 		GLuint program;
+		GLuint attrPosition;
+		GLuint attrIndex;
+		GLuint unifTransform[1];
+		GLuint unifProjection;
 		GLuint vbo;
 		GLuint ibo;
+		GLuint indsCount;
+	} bkProgDiffuse;
+
+	typedef struct {
+		int valid;
+		bkProgDiffuse programDiffuse;
 		int ready;
 		EGLDisplay display;
 		EGLSurface surface;
@@ -26,7 +37,9 @@ extern "C" {
 	} bkEnv;
 
 	const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack);
-	void bkGLEnv_term(bkEnv *env);
+	void bkEnv_term(bkEnv *env);
+	void bkEnv_viewport(bkEnv *env);
+	void bkEnv_draw(bkEnv *env, bkSceneState *state);
 
 #ifdef __cplusplus
 }

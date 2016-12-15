@@ -1,20 +1,27 @@
 #ifndef _BSKT_STATE_H
 #define _BSKT_STATE_H
 
-#include "bkMatrix.h"
+#include "bkSpace.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 	typedef struct {
-		int bog;
+		bkCam cam;
 	} bkSceneState;
 
 	typedef struct {
 		int level;
-		bkSceneState sceneState;
+		int record;
+		int tBallThrown;
+		int rBallThrown;
 	} bkGameState;
+
+	typedef struct {
+		bkGameState game;
+		bkSceneState scene;
+	} bkState;
 
 #ifdef __cplusplus
 }
