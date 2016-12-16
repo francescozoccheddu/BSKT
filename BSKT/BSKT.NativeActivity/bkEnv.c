@@ -177,6 +177,7 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 		p.attrIndex = glGetAttribLocation(p.program, "a_index");
 		p.unifProjection = glGetUniformLocation(p.program, "u_projection");
 		p.unifTransform[0] = glGetUniformLocation(p.program, "u_transform[0]");
+		p.unifColor[0] = glGetUniformLocation (p.program, "u_color[0]");
 		glUseProgram(0);
 		GLuint *buf = malloc(sizeof(GLuint) * 2);
 		glGenBuffers(2, buf);
@@ -222,7 +223,7 @@ void bkEnv_viewport(bkEnv * env)
 
 float a = 0;
 
-void bkEnv_draw(bkEnv * env, bkSceneState * state)
+void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 {
 	glUseProgram(env->programDiffuse.program);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->programDiffuse.ibo);
@@ -237,6 +238,9 @@ void bkEnv_draw(bkEnv * env, bkSceneState * state)
 	bkMat comb = bkMat_mul (&proj, &view);
 	a += 1 * TO_RAD;
 	bkMat c = m4_rotation_y (a);
+	glUniform4fv (env->programDiffuse.unifColor[0], 1,(GLfloat[]) {
+		1, 1, 1, 1
+	});
 	glUniformMatrix4fv(env->programDiffuse.unifProjection, 1, GL_FALSE, (GLfloat *) &comb);
 	glUniformMatrix4fv(env->programDiffuse.unifTransform[0], 1, GL_FALSE, (GLfloat *) &c);
 	glDrawElements(GL_TRIANGLES, env->programDiffuse.indsCount, GL_UNSIGNED_SHORT, 0);
