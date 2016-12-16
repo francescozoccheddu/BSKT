@@ -53,9 +53,6 @@
     <Filter Include="Game">
       <UniqueIdentifier>{d6392f30-3d5a-4084-a215-f48495b68a6e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Bullet">
-      <UniqueIdentifier>{9d2d3355-d18e-4d7c-9987-1ce1c15e1f22}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Game\headers">
       <UniqueIdentifier>{5f456fe7-3dd4-4995-a323-2d26d7675997}</UniqueIdentifier>
     </Filter>

@@ -9,6 +9,9 @@ extern "C" {
 
 	typedef struct {
 		bkCam cam;
+		bkVec lightPos;
+		bkVec lightDir;
+		bkMat basketMat;
 	} bkSceneState;
 
 	typedef struct {

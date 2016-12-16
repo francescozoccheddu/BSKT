@@ -8,16 +8,15 @@
 #include <stdlib.h>
 #include <GLES2\gl2.h>
 
-#define FILE_SEP "/"
+#define SHADERS_DIR "shaders/"
+#define SHADERS_PATH_STRLEN 29
+#define VERTEX_SHADER_FILE "/vertex_shader.glsl"
+#define FRAGMENT_SHADER_FILE "/fragment_shader.glsl"
 
-#define SHADERS_DIR "shaders"
-#define VERTEX_SHADER_FILE "vertex_shader.glsl"
-#define FRAGMENT_SHADER_FILE "fragment_shader.glsl"
-
-#define MESHES_DIR "meshes"
-#define MESH_VERT_SEP ','
-#define MESH_VERTICES_FILE "vertices.bsktm"
-#define MESH_INDICES_FILE "indices.bsktm"
+#define MESHES_DIR "meshes/"
+#define MESHES_PATH_STRLEN 7
+#define MESH_VALUE_SEP ','
+#define MESH_FIELD_SEP ';'
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,10 +46,8 @@ extern "C" {
 
 	const bkAssetPack bkAssetPack_load(AAssetManager *assets);
 
-	char *bkAssets_load(AAssetManager *assets, const char *filename);
-	char *bkAssets_loadp(AAssetManager *assets, const char **filepath, int pathSize);
-	char **bkAssets_splitStr(const char *string, int *tokensCount, char delimiter);
-	void bkAssets_freeSplitStr(char **string);
+	char *bkAssets_loadStr(AAssetManager *assets, const char *filename);
+	char **bkAssets_splitStr(char *string, int *tokensCount, char delimiter);
 
 #ifdef __cplusplus
 }

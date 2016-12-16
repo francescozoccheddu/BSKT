@@ -19,6 +19,7 @@ extern "C" {
 		GLuint attrPosition;
 		GLuint attrIndex;
 		GLuint unifTransform[1];
+		GLuint unifColor[1];
 		GLuint unifProjection;
 		GLuint vbo;
 		GLuint ibo;
@@ -39,7 +40,7 @@ extern "C" {
 	const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack);
 	void bkEnv_term(bkEnv *env);
 	void bkEnv_viewport(bkEnv *env);
-	void bkEnv_draw(bkEnv *env, bkSceneState *state);
+	void bkEnv_draw(const bkEnv *env, const bkSceneState *state);
 
 #ifdef __cplusplus
 }
