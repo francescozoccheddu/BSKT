@@ -95,6 +95,7 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 			EGL_BLUE_SIZE, 8,
 			EGL_GREEN_SIZE, 8,
 			EGL_RED_SIZE, 8,
+			EGL_DEPTH_SIZE, 4,
 			EGL_NONE
 		};
 		eglChooseConfig(display, attribs, &config, 1, &numConfigs);
@@ -154,13 +155,13 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 
 	bkEnv_viewport(env);
 
-	glEnable (GL_CULL_FACE);
-	//TODO RIMUOVILOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO!!!!!!OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO!111o
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
+	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
+	glEnable (GL_CULL_FACE);
+	glCullFace (GL_BACK);
+	glFrontFace (GL_CCW);
+	glDepthMask (GL_TRUE);
+	glDepthFunc (GL_LEQUAL);
 	return 1;
 }
 
@@ -176,6 +177,7 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 		p.attrPosition = glGetAttribLocation(p.program, "a_position");
 		p.attrIndex = glGetAttribLocation(p.program, "a_index");
 		p.unifProjection = glGetUniformLocation(p.program, "u_projection");
+		p.unifLightPos = glGetUniformLocation (p.program, "u_lightpos");
 		p.unifTransform[0] = glGetUniformLocation(p.program, "u_transform[0]");
 		p.unifColor[0] = glGetUniformLocation (p.program, "u_color[0]");
 		glUseProgram(0);
@@ -225,6 +227,8 @@ float a = 0;
 
 void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 {
+	glClearColor (0.0, 1.0, 1.0, 1.0);
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(env->programDiffuse.program);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->programDiffuse.ibo);
 	glBindBuffer(GL_ARRAY_BUFFER, env->programDiffuse.vbo);
@@ -240,6 +244,9 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 	bkMat c = m4_rotation_y (a);
 	glUniform4fv (env->programDiffuse.unifColor[0], 1,(GLfloat[]) {
 		1, 1, 1, 1
+	});
+	glUniform3fv (env->programDiffuse.unifLightPos, 1, (GLfloat[]) {
+		3, 3, 3
 	});
 	glUniformMatrix4fv(env->programDiffuse.unifProjection, 1, GL_FALSE, (GLfloat *) &comb);
 	glUniformMatrix4fv(env->programDiffuse.unifTransform[0], 1, GL_FALSE, (GLfloat *) &c);
