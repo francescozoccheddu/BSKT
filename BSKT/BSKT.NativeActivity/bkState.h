@@ -11,7 +11,8 @@ extern "C" {
 		bkCam cam;
 		bkVec lightPos;
 		bkVec lightDir;
-		bkMat basketMat;
+		bkMat modelMats[2];
+		float lightDisp;
 	} bkSceneState;
 
 	typedef struct {

@@ -20,6 +20,8 @@ static void bk_drawFrame(bkEngine* engine) {
 	engine->state.scene.cam.target = (bkVec) {
 		0.0, 0.0, 0.0
 	};
+	engine->state.scene.modelMats[0] = bkMat_idt ();
+	engine->state.scene.modelMats[1] = bkMat_idt ();
 	bkEnv_draw(&engine->env, &(engine->state.scene));
 	eglSwapBuffers(engine->env.display, engine->env.surface);
 }
@@ -27,7 +29,9 @@ static void bk_drawFrame(bkEngine* engine) {
 static int32_t bk_handleInput(struct android_app* app, AInputEvent* event) {
 	bkEngine* engine = (bkEngine*)app->userData;
 	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-		//TODO
+		float disp = AMotionEvent_getY (event, 0) / 1920.0;
+		LOGE ("Light disp: %f", disp);
+		engine->state.scene.lightDisp = disp;
 		return 1;
 	}
 	return 0;

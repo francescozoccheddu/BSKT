@@ -126,7 +126,8 @@
     </AntPackage>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Content Include="assets\meshes\manichino" />
+    <Content Include="assets\meshes\basket" />
+    <Content Include="assets\meshes\terrain" />
     <Content Include="res\values\strings.xml" />
     <AntBuildXml Include="build.xml" />
     <AndroidManifest Include="AndroidManifest.xml">

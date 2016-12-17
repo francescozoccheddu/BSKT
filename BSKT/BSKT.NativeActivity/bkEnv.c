@@ -174,12 +174,16 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 		if (p.program == 0)
 			return env;
 		glUseProgram(p.program);
-		p.attrPosition = glGetAttribLocation(p.program, "a_position");
+		p.attrPosition = glGetAttribLocation (p.program, "a_position");
+		p.attrNormal = glGetAttribLocation(p.program, "a_normal");
 		p.attrIndex = glGetAttribLocation(p.program, "a_index");
-		p.unifProjection = glGetUniformLocation(p.program, "u_projection");
+		p.unifProjView = glGetUniformLocation (p.program, "u_projview");
 		p.unifLightPos = glGetUniformLocation (p.program, "u_lightpos");
-		p.unifTransform[0] = glGetUniformLocation(p.program, "u_transform[0]");
+		p.unifDispersion = glGetUniformLocation (p.program, "u_dispersion");
+		p.unifModel[0] = glGetUniformLocation(p.program, "u_model[0]");
 		p.unifColor[0] = glGetUniformLocation (p.program, "u_color[0]");
+		p.unifModel[1] = glGetUniformLocation (p.program, "u_model[1]");
+		p.unifColor[1] = glGetUniformLocation (p.program, "u_color[1]");
 		glUseProgram(0);
 		GLuint *buf = malloc(sizeof(GLuint) * 2);
 		glGenBuffers(2, buf);
@@ -223,7 +227,6 @@ void bkEnv_viewport(bkEnv * env)
 	glViewport(0, 0, env->width, env->height);
 }
 
-float a = 0;
 
 void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 {
@@ -232,25 +235,24 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 	glUseProgram(env->programDiffuse.program);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env->programDiffuse.ibo);
 	glBindBuffer(GL_ARRAY_BUFFER, env->programDiffuse.vbo);
-	glEnableVertexAttribArray(env->programDiffuse.attrPosition);
+	glEnableVertexAttribArray (env->programDiffuse.attrPosition);
+	glEnableVertexAttribArray(env->programDiffuse.attrNormal);
 	glEnableVertexAttribArray(env->programDiffuse.attrIndex);
-	glVertexAttribPointer(env->programDiffuse.attrPosition, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (const void*) 0);
-	glVertexAttribPointer(env->programDiffuse.attrIndex, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (const void*) (3 * sizeof(GLfloat)));
-	bkMat idt = bkMat_idt ();
+	glVertexAttribPointer (env->programDiffuse.attrPosition, 3, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) 0);
+	glVertexAttribPointer(env->programDiffuse.attrNormal, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (const GLvoid*) (3 * sizeof (GLfloat)));
+	glVertexAttribPointer(env->programDiffuse.attrIndex, 1, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (const GLvoid*) (6 * sizeof(GLfloat)));
 	bkMat proj = bkMat_proj (&state->cam, env->width, env->height);
 	bkMat view = bkMat_view (&state->cam);
 	bkMat comb = bkMat_mul (&proj, &view);
-	a += 1 * TO_RAD;
-	bkMat c = m4_rotation_y (a);
-	glUniform4fv (env->programDiffuse.unifColor[0], 1,(GLfloat[]) {
-		1, 1, 1, 1
-	});
-	glUniform3fv (env->programDiffuse.unifLightPos, 1, (GLfloat[]) {
-		3, 3, 3
-	});
-	glUniformMatrix4fv(env->programDiffuse.unifProjection, 1, GL_FALSE, (GLfloat *) &comb);
-	glUniformMatrix4fv(env->programDiffuse.unifTransform[0], 1, GL_FALSE, (GLfloat *) &c);
-	glDrawElements(GL_TRIANGLES, env->programDiffuse.indsCount, GL_UNSIGNED_SHORT, 0);
+	glUniform3f (env->programDiffuse.unifLightPos, 0.5, 0.7, 0);
+	glUniform1f (env->programDiffuse.unifDispersion, state->lightDisp);
+	glUniformMatrix4fv (env->programDiffuse.unifProjView, 1, GL_FALSE, (GLfloat *) &comb);
+	int m;
+	for (m = 0; m < MODELS_COUNT; m++) {
+		glUniformMatrix4fv(env->programDiffuse.unifModel[m], 1, GL_FALSE, (GLfloat *) &state->modelMats[m]);
+		glUniform4f (env->programDiffuse.unifColor[m], 1, 1, 1, 1);
+	}
+	glDrawElements(GL_TRIANGLES, env->programDiffuse.indsCount, GL_UNSIGNED_SHORT, (const void*) 0);
 	glUseProgram(0);
 }
 

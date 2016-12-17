@@ -14,14 +14,19 @@
 extern "C" {
 #endif
 
+#define MODELS_COUNT 2
+
 	typedef struct {
 		GLuint program;
 		GLuint attrPosition;
+		GLuint attrNormal;
 		GLuint attrIndex;
-		GLuint unifTransform[1];
-		GLuint unifColor[1];
-		GLuint unifProjection;
+		GLuint unifModel[MODELS_COUNT];
+		GLuint unifColor[MODELS_COUNT];
+		GLuint unifProjView;
 		GLuint unifLightPos;
+		GLuint unifDispersion;
+		GLuint unifView;
 		GLuint vbo;
 		GLuint ibo;
 		GLuint indsCount;
