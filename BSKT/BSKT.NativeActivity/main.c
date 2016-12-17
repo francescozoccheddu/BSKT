@@ -14,8 +14,6 @@ typedef struct {
 static void bk_drawFrame(bkEngine* engine) {
 	if (engine->env.display == NULL) 
 		return;
-	glClearColor(0.0, 1.0, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
 	engine->state.scene.cam.position = (bkVec) {
 		1.0, 2.0, 4.0
 	};

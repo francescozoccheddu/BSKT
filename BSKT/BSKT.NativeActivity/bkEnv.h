@@ -21,6 +21,7 @@ extern "C" {
 		GLuint unifTransform[1];
 		GLuint unifColor[1];
 		GLuint unifProjection;
+		GLuint unifLightPos;
 		GLuint vbo;
 		GLuint ibo;
 		GLuint indsCount;
