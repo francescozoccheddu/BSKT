@@ -9,7 +9,7 @@ bkMat bkMat_mul (const bkMat *a, const bkMat *b) {
 }
 
 bkMat bkMat_proj (const bkCam * cam, int w, int h) {
-	return m4_perspective (BKCAM_ANGLE, h / (float) w, BKCAM_NEAR, BKCAM_FAR);
+	return m4_perspective (BKCAM_ANGLE, w / (float) h, BKCAM_NEAR, BKCAM_FAR);
 }
 
 bkMat bkMat_view (const bkCam * cam) {

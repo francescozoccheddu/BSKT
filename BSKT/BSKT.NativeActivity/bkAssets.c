@@ -86,8 +86,13 @@ const bkAssetPack bkAssetPack_load(AAssetManager *assets)
 {
 	bkAssetPack p;
 	p.programSource = bkProgSrc_load(assets, "diffuse");
-	bkMesh triangle = bkMesh_load(assets, "manichino");
-	p.meshBatch = bkMesh_batch((const bkMesh[]) { triangle }, 1, 3);
+	bkMesh basket = bkMesh_load (assets, "basket");
+	bkMesh terrain = bkMesh_load(assets, "terrain");
+	p.meshBatch = bkMesh_batch((const bkMesh[]) { basket, terrain }, 2, 6);
+	free (basket.indices);
+	free (basket.vertices);
+	free (terrain.vertices);
+	free (terrain.indices);
 	return p;
 }
 
