@@ -1,6 +1,6 @@
 #include "bkAssets.h"
 
-const bkProgSrc bkProgSrc_load(AAssetManager *assets, const char *name) {
+const bkProgSrc bkProgSrc_load (AAssetManager *assets, const char *name) {
 	bkProgSrc ps;
 	char *path = malloc (sizeof (char) * (SHADERS_PATH_STRLEN + strlen (name) + 1));
 	strcpy (path, SHADERS_DIR);
@@ -10,37 +10,37 @@ const bkProgSrc bkProgSrc_load(AAssetManager *assets, const char *name) {
 	strcpy (path, SHADERS_DIR);
 	strcat (path, name);
 	strcat (path, FRAGMENT_SHADER_FILE);
-	ps.fragmentShader = bkAssets_loadStr(assets, path);
+	ps.fragmentShader = bkAssets_loadStr (assets, path);
 	free (path);
 	return ps;
 }
 
-const bkMesh bkMesh_load(AAssetManager *assets, const char *name) {
+const bkMesh bkMesh_load (AAssetManager *assets, const char *name) {
 	bkMesh m;
 	int i;
-	char *path = malloc (sizeof (char) * (MESHES_PATH_STRLEN + strlen(name) + 1));
+	char *path = malloc (sizeof (char) * (MESHES_PATH_STRLEN + strlen (name) + 1));
 	strcpy (path, MESHES_DIR);
 	strcat (path, name);
-	char *fileStr = bkAssets_loadStr(assets, path);
-	char **fileStrs = bkAssets_splitStr(fileStr, NULL, MESH_FIELD_SEP);
+	char *fileStr = bkAssets_loadStr (assets, path);
+	char **fileStrs = bkAssets_splitStr (fileStr, NULL, MESH_FIELD_SEP);
 	char **vertsStrs = bkAssets_splitStr (fileStrs[0], &m.vertsCount, MESH_VALUE_SEP);
-	GLfloat *verts = malloc(sizeof(GLfloat) * m.vertsCount);
+	GLfloat *verts = malloc (sizeof (GLfloat) * m.vertsCount);
 	for (i = 0; i < m.vertsCount; i++)
-		verts[i] = (GLfloat) atof(vertsStrs[i]);
+		verts[i] = (GLfloat) atof (vertsStrs[i]);
 	m.vertices = verts;
-	free(vertsStrs);
-	char **indsStrs = bkAssets_splitStr(fileStrs[1], &m.indsCount, MESH_VALUE_SEP);
-	GLushort *inds = malloc(sizeof(GLushort) * m.indsCount);
+	free (vertsStrs);
+	char **indsStrs = bkAssets_splitStr (fileStrs[1], &m.indsCount, MESH_VALUE_SEP);
+	GLushort *inds = malloc (sizeof (GLushort) * m.indsCount);
 	for (i = 0; i < m.indsCount; i++)
-		inds[i] = (GLushort) atoi(indsStrs[i]);
+		inds[i] = (GLushort) atoi (indsStrs[i]);
 	m.indices = inds;
-	free(indsStrs);
+	free (indsStrs);
 	free (fileStrs);
 	free (fileStr);
 	return m;
 }
 
-const bkMesh bkMesh_batch(const bkMesh *parts, int count, int stride) {
+const bkMesh bkMesh_batch (const bkMesh *parts, int count, int stride) {
 	bkMesh m;
 	{
 		int len = 0, p;
@@ -48,7 +48,7 @@ const bkMesh bkMesh_batch(const bkMesh *parts, int count, int stride) {
 		for (p = 0; p < count; p++)
 			len += parts[p].vertsCount;
 		len = len / stride * (stride + 1);
-		verts = malloc(sizeof(GLfloat) * len);
+		verts = malloc (sizeof (GLfloat) * len);
 		v = verts;
 		for (p = 0; p < count; p++) {
 			const bkMesh part = parts[p];
@@ -67,7 +67,7 @@ const bkMesh bkMesh_batch(const bkMesh *parts, int count, int stride) {
 		GLushort *inds, *i;
 		for (p = 0; p < count; p++)
 			len += parts[p].indsCount;
-		inds = malloc(sizeof(GLushort) * len);
+		inds = malloc (sizeof (GLushort) * len);
 		i = inds;
 		for (p = 0; p < count; p++) {
 			const bkMesh part = parts[p];
@@ -82,32 +82,38 @@ const bkMesh bkMesh_batch(const bkMesh *parts, int count, int stride) {
 	return m;
 }
 
-const bkAssetPack bkAssetPack_load(AAssetManager *assets)
-{
+void bkMesh_free (bkMesh *meshes, int count) {
+	int m = 0;
+	for (m = 0; m < count; m++) {
+		free (meshes[m].indices);
+		free (meshes[m].vertices);
+	}
+}
+
+const bkAssetPack bkAssetPack_load (AAssetManager *assets) {
 	bkAssetPack p;
-	p.programSource = bkProgSrc_load(assets, "diffuse");
-	bkMesh basket = bkMesh_load (assets, "basket");
-	bkMesh terrain = bkMesh_load(assets, "terrain");
-	p.meshBatch = bkMesh_batch((const bkMesh[]) { basket, terrain }, 2, 6);
-	free (basket.indices);
-	free (basket.vertices);
-	free (terrain.vertices);
-	free (terrain.indices);
+	p.diffuseProgSrc = bkProgSrc_load (assets, "diffuse");
+	p.depthProgSrc = bkProgSrc_load (assets, "depth");
+	bkMesh meshes[2];
+	meshes[0] = bkMesh_load (assets, "basket");
+	meshes[1] = bkMesh_load (assets, "terrain");
+	p.meshBatch = bkMesh_batch (meshes, 2, 6);
+	bkMesh_free (meshes, 2);
 	return p;
 }
 
-char* bkAssets_loadStr(AAssetManager *assets, const char *path) {
-	AAsset* asset = AAssetManager_open(assets, path, AASSET_MODE_BUFFER);
-	off_t len = AAsset_getLength(asset);
-	char *dst = malloc(sizeof(char) * (len + 1));
-	AAsset_read(asset, dst, len);
-	AAsset_close(asset);
+char* bkAssets_loadStr (AAssetManager *assets, const char *path) {
+	AAsset* asset = AAssetManager_open (assets, path, AASSET_MODE_BUFFER);
+	off_t len = AAsset_getLength (asset);
+	char *dst = malloc (sizeof (char) * (len + 1));
+	AAsset_read (asset, dst, len);
+	AAsset_close (asset);
 	dst[len] = '\0';
 	return dst;
 }
 
-char** bkAssets_splitStr(char *str, int *num, char regex) {
-	int count = 1, len = strlen(str), i;
+char** bkAssets_splitStr (char *str, int *num, char regex) {
+	int count = 1, len = strlen (str), i;
 	for (i = 0; i < len; i++)
 		if (str[i] == regex) {
 			count++;
@@ -115,10 +121,10 @@ char** bkAssets_splitStr(char *str, int *num, char regex) {
 		}
 	if (num != NULL)
 		*num = count;
-	char **tok = malloc(sizeof(char*) * count);
+	char **tok = malloc (sizeof (char*) * count);
 	for (i = 0; i < count; i++) {
 		tok[i] = str;
-		str += strlen(str) + 1;
+		str += strlen (str) + 1;
 	}
 	return tok;
 }
