@@ -20,6 +20,18 @@ static void bk_drawFrame(bkEngine* engine) {
 	engine->state.scene.cam.target = (bkVec) {
 		0.0, 0.0, 0.0
 	};
+	engine->state.scene.light.position = (bkVec) {
+		0.5, 0.7, 0.0
+	};
+	engine->state.scene.light.target = (bkVec) {
+		0.0, 0.0, 0.0
+	};
+	int x = 0; 
+	int y = 0;
+	
+	for (x = 0; x < 2; x++)
+		for (y = 0; y < 4; y++)
+			engine->state.scene.colors[x][y] = 1;
 	engine->state.scene.modelMats[0] = bkMat_idt ();
 	engine->state.scene.modelMats[1] = bkMat_idt ();
 	bkEnv_draw(&engine->env, &(engine->state.scene));

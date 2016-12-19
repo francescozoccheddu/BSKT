@@ -15,15 +15,14 @@
 extern "C" {
 #endif
 
-#define MODELS_COUNT 2
 
 	typedef struct {
 		GLuint program;
 		//GLuint attrPosition;
 		//GLuint attrNormal;
 		//GLuint attrIndex;
-		GLuint unifModel[MODELS_COUNT];
-		GLuint unifColor[MODELS_COUNT];
+		GLuint unifModel;
+		GLuint unifColor;
 		GLuint unifProjView;
 		GLuint unifLightPos;
 		GLuint unifDispersion;
@@ -33,13 +32,15 @@ extern "C" {
 	typedef struct {
 		GLuint program;
 		GLuint fbo;
-		GLuint texture;
+		GLuint fboTexture;
+		GLuint fboRenderBuf;
 		//GLuint attrPosition;
 		//GLuint attrIndex;
-		GLuint unifModel[MODELS_COUNT];
+		GLuint unifModel;
 		GLuint unifProjView;
-		int hasTex;
-		int texSize;
+		int hasAttachments;
+		int supportsDepthTex;
+		int attSize;
 		bkMat projection;
 	} bkProgDepth;
 

@@ -2,16 +2,17 @@
 #define _BSKT_STATE_H
 
 #include "bkSpace.h"
+#define MODELS_COUNT 2
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 	typedef struct {
-		bkCam cam;
-		bkVec lightPos;
-		bkVec lightDir;
-		bkMat modelMats[2];
+		bkRay cam;
+		bkRay light;
+		bkMat modelMats[MODELS_COUNT];
+		GLfloat colors[MODELS_COUNT][4];
 		float lightDisp;
 	} bkSceneState;
 

@@ -196,15 +196,9 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 			p.unifProjView = glGetUniformLocation (p.program, "u_projview");
 			p.unifLightPos = glGetUniformLocation (p.program, "u_lightpos");
 			p.unifDispersion = glGetUniformLocation (p.program, "u_dispersion");
-			int u;
-			char uModelName[11] = "u_model[0]";
-			char uColorName[11] = "u_color[0]";
-			for (u = 0; u < MODELS_COUNT; u++) {
-				uModelName[8] = u + '0';
-				p.unifModel[u] = glGetUniformLocation (p.program, uModelName);
-				uColorName[8] = u + '0';
-				p.unifColor[u] = glGetUniformLocation (p.program, uColorName);
-			}
+			p.unifModel = glGetUniformLocation (p.program, "u_model");
+			p.unifColor = glGetUniformLocation (p.program, "u_color");
+
 			env.programDiffuse = p;
 		}
 		{
@@ -221,14 +215,11 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 			glVertexAttribPointer (attrIndex, 1, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) (6 * sizeof (GLfloat)));
 
 			p.unifProjView = glGetUniformLocation (p.program, "u_projview");
-			int u;
-			char uModelName[11] = "u_model[0]";
-			for (u = 0; u < MODELS_COUNT; u++) {
-				uModelName[8] = u + '0';
-				p.unifModel[0] = glGetUniformLocation (p.program, uModelName);
-			}
+			p.unifModel = glGetUniformLocation (p.program, "u_model");
+
 			glGenFramebuffers (1, &p.fbo);
-			p.hasTex = 0;
+			p.hasAttachments = 0;
+			p.supportsDepthTex = 1; //TODO Check
 			env.programDepth = p;
 		}
 		env.valid = 1;
@@ -244,8 +235,11 @@ void bkEnv_term(bkEnv *env)
 		glDeleteProgram (env->programDiffuse.program);
 		glDeleteProgram (env->programDepth.program);
 		glDeleteFramebuffers (1, &env->programDepth.fbo);
-		if (env->programDepth.hasTex)
-			glDeleteTextures (1, &env->programDepth.texture);
+		if (env->programDepth.hasAttachments) {
+			glDeleteTextures (1, &env->programDepth.fboTexture);
+			if (!env->programDepth.supportsDepthTex)
+				glDeleteRenderbuffers (1, &env->programDepth.fboRenderBuf);
+		}
 		glDeleteBuffers (2, (const GLuint[]) {env->ibo, env->vbo});
 	}
 	if (env->display != EGL_NO_DISPLAY) {
@@ -272,26 +266,52 @@ void bkEnv_resize(bkEnv * env)
 	eglQuerySurface(env->display, env->surface, EGL_HEIGHT, &h);
 	env->width = w;
 	env->height = h;
-	env->programDiffuse.projection = bkMat_proj (w, h);
+	env->programDiffuse.projection = bkMat_proj (w, h, BK_CAM_ANGLE, BK_CAM_NEAR, BK_CAM_FAR);
 
-	int texSize = pow( 2, (int) ( log2( w * h ) / 2.0 + 0.5 ) );
-	env->programDepth.projection = bkMat_proj (texSize, texSize);
-	if (env->programDepth.hasTex)
-		glDeleteTextures (1, &env->programDepth.texture);
-	env->programDepth.hasTex = 1;
+	bkProgDepth *prog = &env->programDepth;
+	int attSize = pow( 2, (int) ( log2( w * h ) / 2.0 + 0.5 ) );
+	prog->projection = bkMat_proj (attSize, attSize, BK_LIGHT_ANGLE, BK_LIGHT_NEAR, BK_LIGHT_FAR);
+
+	if (prog->hasAttachments) {
+		if (prog->attSize == attSize)
+			return;
+		glDeleteTextures (1, &prog->fboTexture);
+		if (!prog->supportsDepthTex) 
+			glDeleteRenderbuffers (1, &prog->fboRenderBuf);
+	}
+
+	prog->attSize = attSize;
+	prog->hasAttachments = 1;
+
 	GLuint texture;
 	glGenTextures (1, &texture);
 	glBindTexture (GL_TEXTURE_2D, texture);
-	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, texSize, texSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	GLint format = prog->supportsDepthTex ? GL_DEPTH_COMPONENT : GL_RGBA;
+	glTexImage2D (GL_TEXTURE_2D, 0, format, attSize, attSize, 0, format, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glBindFramebuffer (GL_FRAMEBUFFER, env->programDepth.fbo);
-	glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-	glBindFramebuffer (GL_FRAMEBUFFER, 0);
-	env->programDepth.texSize = texSize;
-	env->programDepth.texture = texture;
+	prog->fboTexture = texture;
+
+	if (prog->supportsDepthTex) {
+		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
+		glFramebufferTexture2D (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
+		glBindFramebuffer (GL_FRAMEBUFFER, 0);
+	}
+	else {
+		GLuint renderBuffer;
+		glGenRenderbuffers (1, &renderBuffer);
+		glBindRenderbuffer (GL_RENDERBUFFER, renderBuffer);
+		glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, attSize, attSize);
+		prog->fboRenderBuf = renderBuffer;
+
+		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
+		glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+		glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+		glBindFramebuffer (GL_FRAMEBUFFER, 0);
+	}
+
 }
 
 
@@ -299,20 +319,25 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 {
 	{
 		const bkProgDepth *prog = &env->programDepth;
-		glViewport (0, 0, prog->texSize, prog->texSize);
+		glViewport (0, 0, prog->attSize, prog->attSize);
 		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
-		glClearColor (1.0, 0.0, 1.0, 1.0);
-		glClear (GL_COLOR_BUFFER_BIT);
+		glClearColor (0.0, 0.0, 0.0, 0.0);
+		if (prog->supportsDepthTex) {
+			glClear (GL_DEPTH_BUFFER_BIT);
+			glColorMask (GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		}
+		else {
+			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
 		glUseProgram (prog->program);
-		bkMat view = bkMat_view (&state->cam);
+		bkMat view = bkMat_view (&state->light);
 		bkMat comb = bkMat_mul (&prog->projection, &view);
 		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &comb);
-		int m;
-		for (m = 0; m < MODELS_COUNT; m++) {
-			glUniformMatrix4fv (prog->unifModel[m], 1, GL_FALSE, (GLfloat *) &state->modelMats[m]);
-		}
-		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const void*) 0);
+		glUniformMatrix4fv (prog->unifModel, MODELS_COUNT, GL_FALSE, (GLfloat *) &state->modelMats);
+		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
 		glBindFramebuffer (GL_FRAMEBUFFER, 0);
+		if (prog->supportsDepthTex)
+			glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}
 	{
 		const bkProgDiffuse *prog = &env->programDiffuse;
@@ -322,12 +347,13 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 		glUseProgram (prog->program);
 		bkMat view = bkMat_view (&state->cam);
 		bkMat comb = bkMat_mul (&prog->projection, &view);
-		glUniform3f (prog->unifLightPos, 0.5, 0.7, 0);
+		bkVec lightpos = state->light.position;
+		glUniform3f (prog->unifLightPos, lightpos.x, lightpos.y, lightpos.z );
 		glUniform1f (prog->unifDispersion, state->lightDisp);
 		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &comb);
-		glUniformMatrix4fv (prog->unifModel[m], 1, GL_FALSE, (GLfloat *) state->modelMats);
-		glUniform4f (prog->unifColor[m], 1, 1, 1, 1);
-		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const void*) 0);
+		glUniformMatrix4fv (prog->unifModel, MODELS_COUNT, GL_FALSE, (GLfloat *) &state->modelMats);
+		glUniform4fv (prog->unifColor, MODELS_COUNT, (GLfloat *) state->colors);
+		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
 		glUseProgram (0);
 	}
 }
