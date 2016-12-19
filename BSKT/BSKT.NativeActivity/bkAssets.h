@@ -27,7 +27,7 @@ extern "C" {
 		char *fragmentShader;
 	} bkProgSrc;
 
-	const bkProgSrc bkProgSrc_load(AAssetManager *assets, const char *name);
+	const bkProgSrc bkProgSrc_load (AAssetManager *assets, const char *name);
 
 	typedef struct {
 		GLfloat *vertices;
@@ -36,18 +36,20 @@ extern "C" {
 		int indsCount;
 	} bkMesh;
 
-	const bkMesh bkMesh_load(AAssetManager *assets, const char *name);
-	const bkMesh bkMesh_batch(const bkMesh *meshes, int count, int stride);
+	const bkMesh bkMesh_load (AAssetManager *assets, const char *name);
+	const bkMesh bkMesh_batch (const bkMesh *meshes, int count, int stride);
+	void bkMesh_free (bkMesh *meshes, int count);
 
 	typedef struct {
-		bkProgSrc programSource;
+		bkProgSrc diffuseProgSrc;
+		bkProgSrc depthProgSrc;
 		bkMesh meshBatch;
 	} bkAssetPack;
 
-	const bkAssetPack bkAssetPack_load(AAssetManager *assets);
+	const bkAssetPack bkAssetPack_load (AAssetManager *assets);
 
-	char *bkAssets_loadStr(AAssetManager *assets, const char *filename);
-	char **bkAssets_splitStr(char *string, int *tokensCount, char delimiter);
+	char *bkAssets_loadStr (AAssetManager *assets, const char *filename);
+	char **bkAssets_splitStr (char *string, int *tokensCount, char delimiter);
 
 #ifdef __cplusplus
 }

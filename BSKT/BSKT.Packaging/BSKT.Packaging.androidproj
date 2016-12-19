@@ -141,6 +141,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <JavaCompile Include="assets\shaders\depth\fragment_shader.glsl" />
+    <JavaCompile Include="assets\shaders\depth\vertex_shader.glsl" />
     <JavaCompile Include="assets\shaders\solid3d\fragment_shader.glsl" />
     <JavaCompile Include="assets\shaders\solid3d\vertex_shader.glsl" />
     <JavaCompile Include="assets\shaders\diffuse\fragment_shader.glsl" />

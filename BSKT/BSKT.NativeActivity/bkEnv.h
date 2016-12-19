@@ -9,6 +9,7 @@
 #include "bkSpace.h"
 #include "bkState.h"
 #include <stdlib.h>
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,23 +19,38 @@ extern "C" {
 
 	typedef struct {
 		GLuint program;
-		GLuint attrPosition;
-		GLuint attrNormal;
-		GLuint attrIndex;
+		//GLuint attrPosition;
+		//GLuint attrNormal;
+		//GLuint attrIndex;
 		GLuint unifModel[MODELS_COUNT];
 		GLuint unifColor[MODELS_COUNT];
 		GLuint unifProjView;
 		GLuint unifLightPos;
 		GLuint unifDispersion;
-		GLuint unifView;
-		GLuint vbo;
-		GLuint ibo;
-		GLuint indsCount;
+		bkMat projection;
 	} bkProgDiffuse;
 
 	typedef struct {
+		GLuint program;
+		GLuint fbo;
+		GLuint texture;
+		//GLuint attrPosition;
+		//GLuint attrIndex;
+		GLuint unifModel[MODELS_COUNT];
+		GLuint unifProjView;
+		int hasTex;
+		int texSize;
+		bkMat projection;
+	} bkProgDepth;
+
+
+	typedef struct {
+		GLuint vbo;
+		GLuint ibo;
+		GLuint indsCount;
 		int valid;
 		bkProgDiffuse programDiffuse;
+		bkProgDepth programDepth;
 		int ready;
 		EGLDisplay display;
 		EGLSurface surface;
@@ -45,7 +61,7 @@ extern "C" {
 
 	const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack);
 	void bkEnv_term(bkEnv *env);
-	void bkEnv_viewport(bkEnv *env);
+	void bkEnv_resize(bkEnv *env);
 	void bkEnv_draw(const bkEnv *env, const bkSceneState *state);
 
 #ifdef __cplusplus

@@ -1,3 +1,5 @@
+//Diffuse Vertex Shader
+
 attribute lowp vec4 a_position;
 attribute lowp vec4 a_normal;
 attribute lowp float a_index;
