@@ -219,7 +219,11 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 
 			glGenFramebuffers (1, &p.fbo);
 			p.hasAttachments = 0;
-			p.supportsDepthTex = 1; //TODO Check
+			p.supportsDepthTex = strstr( (const char*) glGetString (GL_EXTENSIONS), "OES_depth_texture") != NULL;
+			if (p.supportsDepthTex)
+				LOGI ("Depth textures support enabled");
+			else
+				LOGW ("Depth textures not supported");
 			env.programDepth = p;
 		}
 		env.valid = 1;
@@ -272,6 +276,19 @@ void bkEnv_resize(bkEnv * env)
 	int attSize = pow( 2, (int) ( log2( w * h ) / 2.0 + 0.5 ) );
 	prog->projection = bkMat_proj (attSize, attSize, BK_LIGHT_ANGLE, BK_LIGHT_NEAR, BK_LIGHT_FAR);
 
+	int maxSize;
+	glGetIntegerv (GL_MAX_TEXTURE_SIZE, &maxSize);
+
+	if (!prog->supportsDepthTex) {
+		int maxRenderBufSize;
+		glGetIntegerv (GL_MAX_RENDERBUFFER_SIZE, &maxRenderBufSize);
+		if (maxRenderBufSize < maxSize)
+			maxSize = maxRenderBufSize;
+	}
+
+	if (maxSize < attSize)
+		attSize = maxSize;
+
 	if (prog->hasAttachments) {
 		if (prog->attSize == attSize)
 			return;
@@ -300,10 +317,11 @@ void bkEnv_resize(bkEnv * env)
 		glBindFramebuffer (GL_FRAMEBUFFER, 0);
 	}
 	else {
+
 		GLuint renderBuffer;
 		glGenRenderbuffers (1, &renderBuffer);
 		glBindRenderbuffer (GL_RENDERBUFFER, renderBuffer);
-		glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, attSize, attSize);
+		glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, maxSize, maxSize);
 		prog->fboRenderBuf = renderBuffer;
 
 		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
@@ -311,6 +329,9 @@ void bkEnv_resize(bkEnv * env)
 		glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 		glBindFramebuffer (GL_FRAMEBUFFER, 0);
 	}
+
+	if (glCheckFramebufferStatus (GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		LOGE ("Bad Framebuffer");
 
 }
 
