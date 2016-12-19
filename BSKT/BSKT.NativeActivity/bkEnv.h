@@ -9,6 +9,7 @@
 #include "bkSpace.h"
 #include "bkState.h"
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #ifdef __cplusplus

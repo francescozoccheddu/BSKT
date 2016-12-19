@@ -1,5 +1,15 @@
 //Depth Fragment Shader
 
+#extension OES_depth_texture : enable 
+
+#ifdef OES_depth_texture
+
+void main (void) {
+	
+}
+
+#else
+
 varying lowp vec4 v_position;
 
 vec4 pack (lowp float depth)
@@ -19,3 +29,4 @@ void main (void) {
 	gl_FragColor = vec4( l, l, l, 1.0 );
 }
 
+#endif
