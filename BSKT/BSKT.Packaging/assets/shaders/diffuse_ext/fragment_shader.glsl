@@ -1,4 +1,4 @@
-//Diffuse Fragment Shader
+//Diffuse Ext Fragment Shader
 
 uniform sampler2D u_depthmap;
 

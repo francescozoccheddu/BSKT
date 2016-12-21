@@ -1,4 +1,4 @@
-//Diffuse Vertex Shader
+//Diffuse Ext Vertex Shader
 
 attribute lowp vec4 a_position;
 attribute lowp vec4 a_normal;

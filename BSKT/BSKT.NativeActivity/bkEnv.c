@@ -156,10 +156,10 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable (GL_CULL_FACE);
-	glCullFace (GL_BACK);
 	glFrontFace (GL_CCW);
 	glDepthMask (GL_TRUE);
 	glDepthFunc (GL_LEQUAL);
+	glCullFace (GL_BACK);
 
 	return 1;
 }
@@ -178,8 +178,41 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 		env.ibo = buf[1];
 		env.indsCount = pack->meshBatch.indsCount;
 		{
+			bkProgDepth p;
+
+			p.supportsDepthTex = strstr ((const char*) glGetString (GL_EXTENSIONS), "OES_depth_texture") != NULL;
+			if (p.supportsDepthTex)
+				LOGI ("Depth textures support enabled");
+			else
+				LOGW ("Depth textures not supported");
+
+			#ifdef NO_DEPTH_EXT
+			p.supportsDepthTex = 0;
+			#endif
+
+			const bkProgSrc *progSrc = p.supportsDepthTex ? &pack->depthExtProgSrc : &pack->depthProgSrc;
+			p.program = bk_createProgram (progSrc->vertexShader, progSrc->fragmentShader);
+			if (p.program == 0)
+				return env;
+
+			GLuint attrPosition = glGetAttribLocation (p.program, "a_position");
+			GLuint attrIndex = glGetAttribLocation (p.program, "a_index");
+			glEnableVertexAttribArray (attrPosition);
+			glEnableVertexAttribArray (attrIndex);
+			glVertexAttribPointer (attrPosition, 3, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) 0);
+			glVertexAttribPointer (attrIndex, 1, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) (6 * sizeof (GLfloat)));
+
+			p.unifProjView = glGetUniformLocation (p.program, "u_projview");
+			p.unifModel = glGetUniformLocation (p.program, "u_model");
+
+			glGenFramebuffers (1, &p.fbo);
+			p.hasAttachments = 0;
+			env.programDepth = p;
+		}
+		{
 			bkProgDiffuse p;
-			p.program = bk_createProgram (pack->diffuseProgSrc.vertexShader, pack->diffuseProgSrc.fragmentShader);
+			const bkProgSrc *progSrc = env.programDepth.supportsDepthTex ? &pack->diffuseExtProgSrc : &pack->diffuseProgSrc;
+			p.program = bk_createProgram (progSrc->vertexShader, progSrc->fragmentShader);
 			if (p.program == 0)
 				return env;
 
@@ -198,33 +231,12 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 			p.unifDispersion = glGetUniformLocation (p.program, "u_dispersion");
 			p.unifModel = glGetUniformLocation (p.program, "u_model");
 			p.unifColor = glGetUniformLocation (p.program, "u_color");
+			p.unifLightProjView = glGetUniformLocation (p.program, "u_lightprojview");
+			glUseProgram (p.program);
+			glUniform1i (glGetUniformLocation (p.program, "u_depthmap"), BK_DEPTHMAP_TEXT_UNIT);
+			glUseProgram (0);
 
 			env.programDiffuse = p;
-		}
-		{
-			bkProgDepth p;
-			p.program = bk_createProgram (pack->depthProgSrc.vertexShader, pack->depthProgSrc.fragmentShader);
-			if (p.program == 0)
-				return env;
-
-			GLuint attrPosition = glGetAttribLocation (p.program, "a_position");
-			GLuint attrIndex = glGetAttribLocation (p.program, "a_index");
-			glEnableVertexAttribArray (attrPosition);
-			glEnableVertexAttribArray (attrIndex);
-			glVertexAttribPointer (attrPosition, 3, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) 0);
-			glVertexAttribPointer (attrIndex, 1, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) (6 * sizeof (GLfloat)));
-
-			p.unifProjView = glGetUniformLocation (p.program, "u_projview");
-			p.unifModel = glGetUniformLocation (p.program, "u_model");
-
-			glGenFramebuffers (1, &p.fbo);
-			p.hasAttachments = 0;
-			p.supportsDepthTex = strstr( (const char*) glGetString (GL_EXTENSIONS), "OES_depth_texture") != NULL;
-			if (p.supportsDepthTex)
-				LOGI ("Depth textures support enabled");
-			else
-				LOGW ("Depth textures not supported");
-			env.programDepth = p;
 		}
 		env.valid = 1;
 		env.ready = 1;
@@ -303,25 +315,30 @@ void bkEnv_resize(bkEnv * env)
 	GLuint texture;
 	glGenTextures (1, &texture);
 	glBindTexture (GL_TEXTURE_2D, texture);
-	GLint format = prog->supportsDepthTex ? GL_DEPTH_COMPONENT : GL_RGBA;
-	glTexImage2D (GL_TEXTURE_2D, 0, format, attSize, attSize, 0, format, GL_UNSIGNED_BYTE, NULL);
+	if (prog->supportsDepthTex)
+		glTexImage2D (GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, attSize, attSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
+	else
+		glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, attSize, attSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	prog->fboTexture = texture;
 
 	if (prog->supportsDepthTex) {
+
 		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
+		glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
 		glFramebufferTexture2D (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
 		glBindFramebuffer (GL_FRAMEBUFFER, 0);
+
 	}
 	else {
 
 		GLuint renderBuffer;
 		glGenRenderbuffers (1, &renderBuffer);
 		glBindRenderbuffer (GL_RENDERBUFFER, renderBuffer);
-		glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, maxSize, maxSize);
+		glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, attSize, attSize);
 		prog->fboRenderBuf = renderBuffer;
 
 		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
@@ -329,6 +346,8 @@ void bkEnv_resize(bkEnv * env)
 		glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 		glBindFramebuffer (GL_FRAMEBUFFER, 0);
 	}
+
+	glActiveTexture (GL_TEXTURE0 + BK_DEPTHMAP_TEXT_UNIT);
 
 	if (glCheckFramebufferStatus (GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		LOGE ("Bad Framebuffer");
@@ -338,27 +357,21 @@ void bkEnv_resize(bkEnv * env)
 
 void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 {
+	bkMat lightProjView;
 	{
 		const bkProgDepth *prog = &env->programDepth;
-		glViewport (0, 0, prog->attSize, prog->attSize);
 		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
-		glClearColor (0.0, 0.0, 0.0, 0.0);
-		if (prog->supportsDepthTex) {
-			glClear (GL_DEPTH_BUFFER_BIT);
-			glColorMask (GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		}
-		else {
-			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		}
+		glViewport (0, 0, prog->attSize, prog->attSize);
+		glClearColor (0.0, 0.0, 0.0, 1.0);
+		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram (prog->program);
 		bkMat view = bkMat_view (&state->light);
-		bkMat comb = bkMat_mul (&prog->projection, &view);
-		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &comb);
+		lightProjView = bkMat_mul (&prog->projection, &view);
+		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &lightProjView);
 		glUniformMatrix4fv (prog->unifModel, MODELS_COUNT, GL_FALSE, (GLfloat *) &state->modelMats);
 		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
 		glBindFramebuffer (GL_FRAMEBUFFER, 0);
-		if (prog->supportsDepthTex)
-			glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glBindTexture (GL_TEXTURE_2D, prog->fboTexture);
 	}
 	{
 		const bkProgDiffuse *prog = &env->programDiffuse;
@@ -371,10 +384,12 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 		bkVec lightpos = state->light.position;
 		glUniform3f (prog->unifLightPos, lightpos.x, lightpos.y, lightpos.z );
 		glUniform1f (prog->unifDispersion, state->lightDisp);
+		glUniformMatrix4fv (prog->unifLightProjView, 1, GL_FALSE, (GLfloat*) &lightProjView);
 		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &comb);
 		glUniformMatrix4fv (prog->unifModel, MODELS_COUNT, GL_FALSE, (GLfloat *) &state->modelMats);
 		glUniform4fv (prog->unifColor, MODELS_COUNT, (GLfloat *) state->colors);
 		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
+		glBindTexture (GL_TEXTURE_2D, 0);
 		glUseProgram (0);
 	}
 }

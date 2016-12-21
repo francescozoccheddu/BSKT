@@ -94,6 +94,8 @@ const bkAssetPack bkAssetPack_load (AAssetManager *assets) {
 	bkAssetPack p;
 	p.diffuseProgSrc = bkProgSrc_load (assets, "diffuse");
 	p.depthProgSrc = bkProgSrc_load (assets, "depth");
+	p.diffuseExtProgSrc = bkProgSrc_load (assets, "diffuse_ext");
+	p.depthExtProgSrc = bkProgSrc_load (assets, "depth_ext");
 	bkMesh meshes[2];
 	meshes[0] = bkMesh_load (assets, "basket");
 	meshes[1] = bkMesh_load (assets, "terrain");

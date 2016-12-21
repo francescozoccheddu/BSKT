@@ -12,6 +12,8 @@
 #include <string.h>
 #include <math.h>
 
+#define BK_DEPTHMAP_TEXT_UNIT 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +29,7 @@ extern "C" {
 		GLuint unifProjView;
 		GLuint unifLightPos;
 		GLuint unifDispersion;
+		GLuint unifLightProjView;
 		bkMat projection;
 	} bkProgDiffuse;
 
@@ -40,9 +43,9 @@ extern "C" {
 		GLuint unifModel;
 		GLuint unifProjView;
 		int hasAttachments;
-		int supportsDepthTex;
 		int attSize;
 		bkMat projection;
+		int supportsDepthTex;
 	} bkProgDepth;
 
 

@@ -42,7 +42,9 @@ extern "C" {
 
 	typedef struct {
 		bkProgSrc diffuseProgSrc;
+		bkProgSrc diffuseExtProgSrc;
 		bkProgSrc depthProgSrc;
+		bkProgSrc depthExtProgSrc;
 		bkMesh meshBatch;
 	} bkAssetPack;
 
