@@ -1,5 +1,7 @@
 #include "bkEnv.h"
 
+//#define NO_DEPTH_EXT
+
 static int bk_initDisp(const struct android_app *app, bkEnv *env);
 static GLuint bk_createShader(GLenum, const char*);
 static GLuint bk_createProgram(const char*, const char*);
@@ -155,11 +157,12 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable (GL_CULL_FACE);
+	glDisable (GL_CULL_FACE);
 	glFrontFace (GL_CCW);
 	glDepthMask (GL_TRUE);
 	glDepthFunc (GL_LEQUAL);
 	glCullFace (GL_BACK);
+	glDepthRangef (0.0, 1.0);
 
 	return 1;
 }
@@ -231,7 +234,7 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 			p.unifDispersion = glGetUniformLocation (p.program, "u_dispersion");
 			p.unifModel = glGetUniformLocation (p.program, "u_model");
 			p.unifColor = glGetUniformLocation (p.program, "u_color");
-			p.unifLightProjView = glGetUniformLocation (p.program, "u_lightprojview");
+			p.unifLightBiasProjView = glGetUniformLocation (p.program, "u_lightbiasprojview");
 			glUseProgram (p.program);
 			glUniform1i (glGetUniformLocation (p.program, "u_depthmap"), BK_DEPTHMAP_TEXT_UNIT);
 			glUseProgram (0);
@@ -316,11 +319,11 @@ void bkEnv_resize(bkEnv * env)
 	glGenTextures (1, &texture);
 	glBindTexture (GL_TEXTURE_2D, texture);
 	if (prog->supportsDepthTex)
-		glTexImage2D (GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, attSize, attSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
+		glTexImage2D (GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, attSize, attSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 	else
 		glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, attSize, attSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	prog->fboTexture = texture;
@@ -354,7 +357,6 @@ void bkEnv_resize(bkEnv * env)
 
 }
 
-
 void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 {
 	bkMat lightProjView;
@@ -363,6 +365,8 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
 		glViewport (0, 0, prog->attSize, prog->attSize);
 		glClearColor (0.0, 0.0, 0.0, 1.0);
+		if (prog->supportsDepthTex)
+			glColorMask (GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram (prog->program);
 		bkMat view = bkMat_view (&state->light);
@@ -372,6 +376,8 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
 		glBindFramebuffer (GL_FRAMEBUFFER, 0);
 		glBindTexture (GL_TEXTURE_2D, prog->fboTexture);
+		if (prog->supportsDepthTex)
+			glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}
 	{
 		const bkProgDiffuse *prog = &env->programDiffuse;
@@ -384,7 +390,8 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 		bkVec lightpos = state->light.position;
 		glUniform3f (prog->unifLightPos, lightpos.x, lightpos.y, lightpos.z );
 		glUniform1f (prog->unifDispersion, state->lightDisp);
-		glUniformMatrix4fv (prog->unifLightProjView, 1, GL_FALSE, (GLfloat*) &lightProjView);
+		bkMat lightBiasProjView = bkMat_mul (&bkMat_bias, &lightProjView);
+		glUniformMatrix4fv (prog->unifLightBiasProjView, 1, GL_FALSE, (GLfloat*) &lightBiasProjView);
 		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &comb);
 		glUniformMatrix4fv (prog->unifModel, MODELS_COUNT, GL_FALSE, (GLfloat *) &state->modelMats);
 		glUniform4fv (prog->unifColor, MODELS_COUNT, (GLfloat *) state->colors);

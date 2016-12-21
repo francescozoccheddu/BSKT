@@ -47,7 +47,7 @@ static int32_t bk_handleInput(struct android_app* app, AInputEvent* event) {
 		float x = AMotionEvent_getX (event, 0) / 1080.0;
 		float y = AMotionEvent_getY (event, 0) / 1920.0;
 		engine->state.scene.light.position = (bkVec) {
-			x-0.5, 0.7, y-0.5
+			x-0.5, 1.5, y-0.5
 		};
 		return 1;
 	}
