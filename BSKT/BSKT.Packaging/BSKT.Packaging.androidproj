@@ -143,10 +143,12 @@
   <ItemGroup>
     <JavaCompile Include="assets\shaders\depth\fragment_shader.glsl" />
     <JavaCompile Include="assets\shaders\depth\vertex_shader.glsl" />
-    <JavaCompile Include="assets\shaders\solid3d\fragment_shader.glsl" />
-    <JavaCompile Include="assets\shaders\solid3d\vertex_shader.glsl" />
+    <JavaCompile Include="assets\shaders\depth_ext\fragment_shader.glsl" />
+    <JavaCompile Include="assets\shaders\depth_ext\vertex_shader.glsl" />
     <JavaCompile Include="assets\shaders\diffuse\fragment_shader.glsl" />
     <JavaCompile Include="assets\shaders\diffuse\vertex_shader.glsl" />
+    <JavaCompile Include="assets\shaders\diffuse_ext\fragment_shader.glsl" />
+    <JavaCompile Include="assets\shaders\diffuse_ext\vertex_shader.glsl" />
   </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />

@@ -14,6 +14,7 @@ extern "C" {
 		bkMat modelMats[MODELS_COUNT];
 		GLfloat colors[MODELS_COUNT][4];
 		float lightDisp;
+		int temp;
 	} bkSceneState;
 
 	typedef struct {

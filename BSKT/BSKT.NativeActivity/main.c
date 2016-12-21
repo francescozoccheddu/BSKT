@@ -20,9 +20,7 @@ static void bk_drawFrame(bkEngine* engine) {
 	engine->state.scene.cam.target = (bkVec) {
 		0.0, 0.0, 0.0
 	};
-	engine->state.scene.light.position = (bkVec) {
-		0.5, 0.7, 0.0
-	};
+	
 	engine->state.scene.light.target = (bkVec) {
 		0.0, 0.0, 0.0
 	};
@@ -41,9 +39,16 @@ static void bk_drawFrame(bkEngine* engine) {
 static int32_t bk_handleInput(struct android_app* app, AInputEvent* event) {
 	bkEngine* engine = (bkEngine*)app->userData;
 	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-		float disp = AMotionEvent_getY (event, 0) / 1920.0;
-		LOGE ("Light disp: %f", disp);
-		engine->state.scene.lightDisp = disp;
+		int act = AMotionEvent_getAction (event) & AMOTION_EVENT_ACTION_MASK;
+		if (act == AMOTION_EVENT_ACTION_DOWN)
+			engine->state.scene.temp = 1;
+		else if (act == AMOTION_EVENT_ACTION_UP || act == AMOTION_EVENT_ACTION_CANCEL)
+			engine->state.scene.temp = 0;
+		float x = AMotionEvent_getX (event, 0) / 1080.0;
+		float y = AMotionEvent_getY (event, 0) / 1920.0;
+		engine->state.scene.light.position = (bkVec) {
+			x-0.5, 0.7, y-0.5
+		};
 		return 1;
 	}
 	return 0;
