@@ -12,7 +12,7 @@
 #define BK_CAM_ANGLE 80.0
 #define BK_LIGHT_FAR 5.0
 #define BK_LIGHT_NEAR 1.0
-#define BK_LIGHT_ANGLE 45.0
+#define BK_LIGHT_ANGLE 85.0
 
 #ifdef __cplusplus
 extern "C" {
