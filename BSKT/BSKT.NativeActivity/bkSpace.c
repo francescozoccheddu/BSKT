@@ -13,5 +13,18 @@ bkMat bkMat_proj (int w, int h, float angle, float near, float far) {
 }
 
 bkMat bkMat_view (const bkRay * ray) {
-	return m4_look_at (ray->position, ray->target, (vec3_t) { 0.0, 1.0, 0.0 });
+	return m4_look_at (ray->position, ray->target, (vec3_t) {
+		0.0, 1.0, 0.0
+	});
 }
+
+const bkMat bkMat_bias = (const bkMat) {
+	{
+		{
+			0.5, 0.0, 0.0, 0.0
+		},
+		{ 0.0, 0.5, 0.0, 0.0 },
+		{ 0.0, 0.0, 0.5, 0.0 },
+		{ 0.5, 0.5, 0.5, 1.0 }
+	}
+};

@@ -29,7 +29,7 @@ extern "C" {
 		GLuint unifProjView;
 		GLuint unifLightPos;
 		GLuint unifDispersion;
-		GLuint unifLightProjView;
+		GLuint unifLightBiasProjView;
 		bkMat projection;
 	} bkProgDiffuse;
 

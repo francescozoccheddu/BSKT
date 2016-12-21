@@ -1,15 +1,21 @@
 //Diffuse Ext Fragment Shader
 
-uniform sampler2D u_depthmap;
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif 
 
-varying lowp vec4 v_color;
-varying lowp vec4 v_position;
+uniform highp sampler2D u_depthmap;
+
+varying vec4 v_color;
+varying vec4 v_position;
 
 void main(void) {
-	vec3 proj = v_position.xyz / v_position.w;
-	float sampledepth = texture2D( u_depthmap, proj.xy * 0.5 + 0.5 ).z;
-	float fallof = 1.0 - length(proj.xy);
-	float shadow = sampledepth < proj.z ? 0.0 : 1.0;
-	gl_FragColor = vec4( vec3(sampledepth), 1.0);
+	float smpd = texture2DProj( u_depthmap, v_position.xyw ).z;
+	//float fallof = 1.0 - length(v_position.xy - 0.5);
+	const float bias = 0.0005;
+	float ddif = smpd < (v_position.z-bias) / v_position.w ? 0.0 : 1.0;
+	gl_FragColor = vec4( vec3(ddif * ), 1.0);
 }
 
