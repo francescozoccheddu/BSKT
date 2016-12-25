@@ -21,16 +21,12 @@ extern "C" {
 
 	typedef struct {
 		GLuint program;
-		//GLuint attrPosition;
-		//GLuint attrNormal;
-		//GLuint attrIndex;
 		GLuint unifModel;
 		GLuint unifColor;
 		GLuint unifProjView;
 		GLuint unifLightPos;
 		GLuint unifDispersion;
 		GLuint unifLightBiasProjView;
-		bkMat projection;
 	} bkProgDiffuse;
 
 	typedef struct {
@@ -38,8 +34,6 @@ extern "C" {
 		GLuint fbo;
 		GLuint fboTexture;
 		GLuint fboRenderBuf;
-		//GLuint attrPosition;
-		//GLuint attrIndex;
 		GLuint unifModel;
 		GLuint unifProjView;
 		int hasAttachments;
@@ -48,20 +42,28 @@ extern "C" {
 		int supportsDepthTex;
 	} bkProgDepth;
 
+	typedef struct {
+		GLuint program;
+		GLuint ibo;
+		GLuint unifModel;
+		GLuint unifProjView;
+	} bkProgCel;
+
 
 	typedef struct {
 		GLuint vbo;
 		GLuint ibo;
-		GLuint indsCount;
 		int valid;
 		bkProgDiffuse programDiffuse;
 		bkProgDepth programDepth;
+		bkProgCel programCel;
 		int ready;
 		EGLDisplay display;
 		EGLSurface surface;
 		EGLContext context;
 		int32_t width;
 		int32_t height;
+		bkMat projection;
 	} bkEnv;
 
 	const bkEnv bkEnv_init(const struct android_app *app);
