@@ -2,90 +2,93 @@
 
 //#define NO_DEPTH_EXT
 
-static int bk_initDisp(const struct android_app *app, bkEnv *env);
-static GLuint bk_createShader(GLenum, const char*);
-static GLuint bk_createProgram(const char*, const char*);
+static int bk_initDisp (const struct android_app *app, bkEnv *env);
+static GLuint bk_createShader (GLenum type, const char* src);
+static GLuint bk_createProgram (const char* vsrc, const char* fsrc, const char** attrNames, const int* attrLocs, int attrCount);
 
-static GLuint bk_createShader(GLenum type, const char *source) {
+static GLuint bk_createShader (GLenum type, const char *source) {
 	GLuint shader;
-	if ((shader = glCreateShader(type)) == 0) {
-		LOGE("No shader created");
+	if ((shader = glCreateShader (type)) == 0) {
+		LOGE ("No shader created");
 		return 0;
 	}
-	glShaderSource(shader, 1, &source, NULL);
-	glCompileShader(shader);
+	glShaderSource (shader, 1, &source, NULL);
+	glCompileShader (shader);
 	{
 		GLint compileStatus;
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+		glGetShaderiv (shader, GL_COMPILE_STATUS, &compileStatus);
 		if (compileStatus == GL_FALSE) {
-			LOGE("Shader not compiled");
+			LOGE ("Shader not compiled");
 			GLint logLen;
-			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
+			glGetShaderiv (shader, GL_INFO_LOG_LENGTH, &logLen);
 			if (logLen > 1) {
-				GLchar* log = malloc(sizeof(GLchar) * logLen);
-				glGetShaderInfoLog(shader, logLen, NULL, log);
-				LOGE("%s", log);
-				free(log);
+				GLchar* log = malloc (sizeof (GLchar) * logLen);
+				glGetShaderInfoLog (shader, logLen, NULL, log);
+				LOGE ("%s", log);
+				free (log);
 			}
-			glDeleteShader(shader);
+			glDeleteShader (shader);
 			return 0;
 		}
 	}
 	return shader;
 }
 
-static GLuint bk_createProgram(const char *vertexSource, const char *fragmentSource) {
+static GLuint bk_createProgram (const char *vertexSource, const char *fragmentSource, const char** attNames, const int* attrLocs, int attrCount) {
 	GLuint program;
-	if ((program = glCreateProgram()) == 0) {
-		LOGE("No program created");
+	if ((program = glCreateProgram ()) == 0) {
+		LOGE ("No program created");
 		return 0;
 	}
 	GLuint vertexShader, fragmentShader;
-	if ((vertexShader = bk_createShader(GL_VERTEX_SHADER, vertexSource)) == 0)
+	if ((vertexShader = bk_createShader (GL_VERTEX_SHADER, vertexSource)) == 0)
 		return 0;
-	if ((fragmentShader = bk_createShader(GL_FRAGMENT_SHADER, fragmentSource)) == 0)
+	if ((fragmentShader = bk_createShader (GL_FRAGMENT_SHADER, fragmentSource)) == 0)
 		return 0;
-	glAttachShader(program, vertexShader);
-	glAttachShader(program, fragmentShader);
-	glLinkProgram(program);
+	glAttachShader (program, vertexShader);
+	glAttachShader (program, fragmentShader);
+	int a;
+	for (a = 0; a < attrCount; a++)
+		glBindAttribLocation (program, attrLocs[a], attNames[a]);
+	glLinkProgram (program);
 	{
 		int linkStatus;
-		glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+		glGetProgramiv (program, GL_LINK_STATUS, &linkStatus);
 		if (linkStatus == GL_FALSE) {
 			GLint logLen;
-			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLen);
+			glGetProgramiv (program, GL_INFO_LOG_LENGTH, &logLen);
 			if (logLen > 1) {
-				GLchar* log = malloc(sizeof(GLchar) * logLen);
-				glGetProgramInfoLog(program, logLen, NULL, log);
-				LOGE("%s", log);
-				free(log);
+				GLchar* log = malloc (sizeof (GLchar) * logLen);
+				glGetProgramInfoLog (program, logLen, NULL, log);
+				LOGE ("%s", log);
+				free (log);
 			}
-			glDeleteProgram(program);
+			glDeleteProgram (program);
 			return 0;
 		}
 	}
-	glDetachShader(program, vertexShader);
-	glDetachShader(program, fragmentShader);
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	glDetachShader (program, vertexShader);
+	glDetachShader (program, fragmentShader);
+	glDeleteShader (vertexShader);
+	glDeleteShader (fragmentShader);
 	return program;
 }
 
-static int bk_initDisp(const struct android_app *app, bkEnv *env) {
+static int bk_initDisp (const struct android_app *app, bkEnv *env) {
 
 	EGLSurface surface;
 	EGLContext context;
 	EGLDisplay display;
 
-	if ((display = eglGetDisplay(EGL_DEFAULT_DISPLAY)) == EGL_NO_DISPLAY) {
-		LOGE("No display");
+	if ((display = eglGetDisplay (EGL_DEFAULT_DISPLAY)) == EGL_NO_DISPLAY) {
+		LOGE ("No display");
 		return 0;
 	}
 
-	if (!eglInitialize(display, 0, 0)) {
-		if (eglGetError() == EGL_BAD_DISPLAY)
-			LOGE("EGL bad display");
-		LOGE("EGL not initialized");
+	if (!eglInitialize (display, 0, 0)) {
+		if (eglGetError () == EGL_BAD_DISPLAY)
+			LOGE ("EGL bad display");
+		LOGE ("EGL not initialized");
 		return 0;
 	}
 
@@ -100,10 +103,10 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 			EGL_DEPTH_SIZE, 4,
 			EGL_NONE
 		};
-		eglChooseConfig(display, attribs, &config, 1, &numConfigs);
+		eglChooseConfig (display, attribs, &config, 1, &numConfigs);
 		EGLint format;
-		eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-		ANativeWindow_setBuffersGeometry(app->window, 0, 0, format);
+		eglGetConfigAttrib (display, config, EGL_NATIVE_VISUAL_ID, &format);
+		ANativeWindow_setBuffersGeometry (app->window, 0, 0, format);
 	}
 
 	{
@@ -111,23 +114,22 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 			EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
 			EGL_NONE
 		};
-		if ((surface = eglCreateWindowSurface(display, config, app->window, attribList)) == EGL_NO_SURFACE) {
-			switch (eglGetError())
-			{
+		if ((surface = eglCreateWindowSurface (display, config, app->window, attribList)) == EGL_NO_SURFACE) {
+			switch (eglGetError ()) {
 			case EGL_BAD_MATCH:
-				LOGE("EGL bad match");
+				LOGE ("EGL bad match");
 				break;
 			case EGL_BAD_CONFIG:
-				LOGE("EGL bad config");
+				LOGE ("EGL bad config");
 				break;
 			case EGL_BAD_NATIVE_WINDOW:
-				LOGE("EGL bad native window");
+				LOGE ("EGL bad native window");
 				break;
 			case EGL_BAD_ALLOC:
-				LOGE("EGL bad alloc");
+				LOGE ("EGL bad alloc");
 				break;
 			}
-			LOGE("No surface created");
+			LOGE ("No surface created");
 			return 0;
 		}
 	}
@@ -137,16 +139,16 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 			EGL_CONTEXT_CLIENT_VERSION, 2,
 			EGL_NONE
 		};
-		if ((context = eglCreateContext(display, config, EGL_NO_CONTEXT, attribList)) == EGL_NO_CONTEXT) {
-			if (eglGetError() == EGL_BAD_CONFIG)
-				LOGE("EGL bad config");
-			LOGE("No context created");
+		if ((context = eglCreateContext (display, config, EGL_NO_CONTEXT, attribList)) == EGL_NO_CONTEXT) {
+			if (eglGetError () == EGL_BAD_CONFIG)
+				LOGE ("EGL bad config");
+			LOGE ("No context created");
 			return 0;
 		}
 	}
 
-	if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
-		LOGE("Unable to eglMakeCurrent");
+	if (eglMakeCurrent (display, surface, surface, context) == EGL_FALSE) {
+		LOGE ("Unable to eglMakeCurrent");
 		return 0;
 	}
 
@@ -155,8 +157,8 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 	env->context = context;
 	env->surface = surface;
 
-	glEnable(GL_DEPTH_TEST);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable (GL_DEPTH_TEST);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable (GL_CULL_FACE);
 	glFrontFace (GL_CCW);
 	glDepthMask (GL_TRUE);
@@ -167,10 +169,9 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 	return 1;
 }
 
-const bkEnv bkEnv_init(const struct android_app *app)
-{
+const bkEnv bkEnv_init (const struct android_app *app) {
 	bkEnv env;
-	if (bk_initDisp(app, &env)) {
+	if (bk_initDisp (app, &env)) {
 		GLuint buf[2];
 		glGenBuffers (2, buf);
 		glBindBuffer (GL_ARRAY_BUFFER, buf[0]);
@@ -179,7 +180,6 @@ const bkEnv bkEnv_init(const struct android_app *app)
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, buf[1]);
 		glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof (GLushort) * bkMeshTrIndsLen, bkMeshTrInds, GL_STATIC_DRAW);
 		env.ibo = buf[1];
-		env.indsCount = bkMeshTrIndsLen;
 		{
 			bkProgDepth p;
 
@@ -189,21 +189,18 @@ const bkEnv bkEnv_init(const struct android_app *app)
 			else
 				LOGW ("Depth textures not supported");
 
-			#ifdef NO_DEPTH_EXT
+#ifdef NO_DEPTH_EXT
 			p.supportsDepthTex = 0;
-			#endif
+#endif
 
 			const bkProgSrc *progSrc = p.supportsDepthTex ? &bkProgSrcDepthExt : &bkProgSrcDepth;
-			p.program = bk_createProgram (progSrc->vertexShader, progSrc->fragmentShader);
+			p.program = bk_createProgram (progSrc->vertexShader, progSrc->fragmentShader, (const char*[]) {
+				"a_position", "a_index"
+			}, (const int[]) {
+					BKPROG_ATTR_POS, BKPROG_ATTR_INDX
+				}, 2);
 			if (p.program == 0)
 				return env;
-
-			GLuint attrPosition = glGetAttribLocation (p.program, "a_position");
-			GLuint attrIndex = glGetAttribLocation (p.program, "a_index");
-			glEnableVertexAttribArray (attrPosition);
-			glEnableVertexAttribArray (attrIndex);
-			glVertexAttribPointer (attrPosition, 3, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) 0);
-			glVertexAttribPointer (attrIndex, 1, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) (6 * sizeof (GLfloat)));
 
 			p.unifProjView = glGetUniformLocation (p.program, "u_projview");
 			p.unifModel = glGetUniformLocation (p.program, "u_model");
@@ -215,19 +212,13 @@ const bkEnv bkEnv_init(const struct android_app *app)
 		{
 			bkProgDiffuse p;
 			const bkProgSrc *progSrc = env.programDepth.supportsDepthTex ? &bkProgSrcDiffuseExt : &bkProgSrcDiffuse;
-			p.program = bk_createProgram (progSrc->vertexShader, progSrc->fragmentShader);
+			p.program = bk_createProgram (progSrc->vertexShader, progSrc->fragmentShader, (const char*[]) {
+				"a_position", "a_normal", "a_index"
+			}, (const int[]) {
+					BKPROG_ATTR_POS, BKPROG_ATTR_NORM, BKPROG_ATTR_INDX
+				}, 3);
 			if (p.program == 0)
 				return env;
-
-			GLuint attrPosition = glGetAttribLocation (p.program, "a_position");
-			GLuint attrNormal = glGetAttribLocation (p.program, "a_normal");
-			GLuint attrIndex = glGetAttribLocation (p.program, "a_index");
-			glEnableVertexAttribArray (attrPosition);
-			glEnableVertexAttribArray (attrNormal);
-			glEnableVertexAttribArray (attrIndex);
-			glVertexAttribPointer (attrPosition, 3, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) 0);
-			glVertexAttribPointer (attrNormal, 3, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) (3 * sizeof (GLfloat)));
-			glVertexAttribPointer (attrIndex, 1, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) (6 * sizeof (GLfloat)));
 
 			p.unifProjView = glGetUniformLocation (p.program, "u_projview");
 			p.unifLightPos = glGetUniformLocation (p.program, "u_lightpos");
@@ -241,6 +232,37 @@ const bkEnv bkEnv_init(const struct android_app *app)
 
 			env.programDiffuse = p;
 		}
+		{
+			bkProgCel p;
+			p.program = bk_createProgram (bkProgSrcCel.vertexShader, bkProgSrcCel.fragmentShader, (const char*[]) {
+				"a_position", "a_index"
+			}, (const int[]) {
+					BKPROG_ATTR_POS, BKPROG_ATTR_INDX
+				}, 2);
+			if (p.program == 0)
+				return env;
+
+			p.unifProjView = glGetUniformLocation (p.program, "u_projview");
+			p.unifModel = glGetUniformLocation (p.program, "u_model");
+			glUseProgram (p.program);
+			glUseProgram (0);
+
+			GLuint ibo;
+			glGenBuffers (1, &ibo);
+			glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, ibo);
+			glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof (GLushort) * bkMeshLnIndsLen, bkMeshLnInds, GL_STATIC_DRAW);
+			p.ibo = ibo;
+
+			env.programCel = p;
+		}
+
+		glEnableVertexAttribArray (BKPROG_ATTR_POS);
+		glEnableVertexAttribArray (BKPROG_ATTR_NORM);
+		glEnableVertexAttribArray (BKPROG_ATTR_INDX);
+		glVertexAttribPointer (BKPROG_ATTR_POS, 3, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) 0);
+		glVertexAttribPointer (BKPROG_ATTR_NORM, 3, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) (3 * sizeof (GLfloat)));
+		glVertexAttribPointer (BKPROG_ATTR_INDX, 1, GL_FLOAT, GL_FALSE, 7 * sizeof (GLfloat), (const GLvoid*) (6 * sizeof (GLfloat)));
+
 		env.valid = 1;
 		env.ready = 1;
 		bkEnv_resize (&env);
@@ -248,8 +270,7 @@ const bkEnv bkEnv_init(const struct android_app *app)
 	return env;
 }
 
-void bkEnv_term(bkEnv *env)
-{
+void bkEnv_term (bkEnv *env) {
 	if (env->valid) {
 		glDeleteProgram (env->programDiffuse.program);
 		glDeleteProgram (env->programDepth.program);
@@ -259,17 +280,19 @@ void bkEnv_term(bkEnv *env)
 			if (!env->programDepth.supportsDepthTex)
 				glDeleteRenderbuffers (1, &env->programDepth.fboRenderBuf);
 		}
-		glDeleteBuffers (2, (const GLuint[]) {env->ibo, env->vbo});
+		glDeleteBuffers (2, (const GLuint[]) {
+			env->ibo, env->vbo
+		});
 	}
 	if (env->display != EGL_NO_DISPLAY) {
-		eglMakeCurrent(env->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglMakeCurrent (env->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		if (env->context != EGL_NO_CONTEXT) {
-			eglDestroyContext(env->display, env->context);
+			eglDestroyContext (env->display, env->context);
 		}
 		if (env->surface != EGL_NO_SURFACE) {
-			eglDestroySurface(env->display, env->surface);
+			eglDestroySurface (env->display, env->surface);
 		}
-		eglTerminate(env->display);
+		eglTerminate (env->display);
 	}
 	env->ready = 0;
 	env->valid = 0;
@@ -278,17 +301,16 @@ void bkEnv_term(bkEnv *env)
 	env->surface = EGL_NO_SURFACE;
 }
 
-void bkEnv_resize(bkEnv * env)
-{
+void bkEnv_resize (bkEnv * env) {
 	int w, h;
-	eglQuerySurface(env->display, env->surface, EGL_WIDTH, &w);
-	eglQuerySurface(env->display, env->surface, EGL_HEIGHT, &h);
+	eglQuerySurface (env->display, env->surface, EGL_WIDTH, &w);
+	eglQuerySurface (env->display, env->surface, EGL_HEIGHT, &h);
 	env->width = w;
 	env->height = h;
-	env->programDiffuse.projection = bkMat_proj (w, h, BK_CAM_ANGLE, BK_CAM_NEAR, BK_CAM_FAR);
+	env->projection = bkMat_proj (w, h, BK_CAM_ANGLE, BK_CAM_NEAR, BK_CAM_FAR);
 
 	bkProgDepth *prog = &env->programDepth;
-	int attSize = pow( 2, (int) ( log2( w * h ) / 2.0 + 0.5 ) );
+	int attSize = pow (2, (int) (log2 (w * h) / 2.0 + 0.5));
 	prog->projection = bkMat_proj (attSize, attSize, BK_LIGHT_ANGLE, BK_LIGHT_NEAR, BK_LIGHT_FAR);
 
 	int maxSize;
@@ -308,7 +330,7 @@ void bkEnv_resize(bkEnv * env)
 		if (prog->attSize == attSize)
 			return;
 		glDeleteTextures (1, &prog->fboTexture);
-		if (!prog->supportsDepthTex) 
+		if (!prog->supportsDepthTex)
 			glDeleteRenderbuffers (1, &prog->fboRenderBuf);
 	}
 
@@ -357,9 +379,9 @@ void bkEnv_resize(bkEnv * env)
 
 }
 
-void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
-{
+void bkEnv_draw (const bkEnv * env, const bkSceneState * state) {
 	bkMat lightProjView;
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, env->ibo);
 	{
 		const bkProgDepth *prog = &env->programDepth;
 		glBindFramebuffer (GL_FRAMEBUFFER, prog->fbo);
@@ -373,12 +395,13 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 		lightProjView = bkMat_mul (&prog->projection, &view);
 		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &lightProjView);
 		glUniformMatrix4fv (prog->unifModel, MODELS_COUNT, GL_FALSE, (GLfloat *) &state->modelMats);
-		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
+		glDrawElements (GL_TRIANGLES, bkMeshTrIndsLen, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
 		glBindFramebuffer (GL_FRAMEBUFFER, 0);
 		glBindTexture (GL_TEXTURE_2D, prog->fboTexture);
 		if (prog->supportsDepthTex)
 			glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}
+	bkMat comb;
 	{
 		const bkProgDiffuse *prog = &env->programDiffuse;
 		glViewport (0, 0, env->width, env->height);
@@ -386,16 +409,26 @@ void bkEnv_draw(const bkEnv * env, const bkSceneState * state)
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram (prog->program);
 		bkMat view = bkMat_view (&state->cam);
-		bkMat comb = bkMat_mul (&prog->projection, &view);
+		comb = bkMat_mul (&env->projection, &view);
 		bkVec lightpos = state->light.position;
-		glUniform3f (prog->unifLightPos, lightpos.x, lightpos.y, lightpos.z );
+		glUniform3f (prog->unifLightPos, lightpos.x, lightpos.y, lightpos.z);
 		glUniform1f (prog->unifDispersion, state->lightDisp);
 		bkMat lightBiasProjView = bkMat_mul (&bkMat_bias, &lightProjView);
 		glUniformMatrix4fv (prog->unifLightBiasProjView, 1, GL_FALSE, (GLfloat*) &lightBiasProjView);
 		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &comb);
 		glUniformMatrix4fv (prog->unifModel, MODELS_COUNT, GL_FALSE, (GLfloat *) &state->modelMats);
 		glUniform4fv (prog->unifColor, MODELS_COUNT, (GLfloat *) state->colors);
-		glDrawElements (GL_TRIANGLES, env->indsCount, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
+		glDrawElements (GL_TRIANGLES, bkMeshTrIndsLen, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
+		glBindTexture (GL_TEXTURE_2D, 0);
+		glUseProgram (0);
+	}
+	{
+		const bkProgCel *prog = &env->programCel;
+		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, prog->ibo);
+		glUseProgram (prog->program);
+		glUniformMatrix4fv (prog->unifProjView, 1, GL_FALSE, (GLfloat *) &comb);
+		glUniformMatrix4fv (prog->unifModel, MODELS_COUNT, GL_FALSE, (GLfloat *) &state->modelMats);
+		glDrawElements (GL_LINES, bkMeshLnIndsLen, GL_UNSIGNED_SHORT, (const GLvoid*) 0);
 		glBindTexture (GL_TEXTURE_2D, 0);
 		glUseProgram (0);
 	}
