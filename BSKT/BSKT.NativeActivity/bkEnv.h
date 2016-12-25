@@ -64,7 +64,7 @@ extern "C" {
 		int32_t height;
 	} bkEnv;
 
-	const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack);
+	const bkEnv bkEnv_init(const struct android_app *app);
 	void bkEnv_term(bkEnv *env);
 	void bkEnv_resize(bkEnv *env);
 	void bkEnv_draw(const bkEnv *env, const bkSceneState *state);
