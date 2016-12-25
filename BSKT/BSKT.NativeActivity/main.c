@@ -4,8 +4,6 @@
 #include "bkAssets.h"
 #include "bkState.h"
 
-bkAssetPack *assetPack = NULL;
-
 typedef struct {
 	bkState state;
 	bkEnv env;
@@ -69,7 +67,7 @@ static void bk_handleCmd(struct android_app* app, int32_t cmd) {
 			break;
 		case APP_CMD_INIT_WINDOW:
 			if (app->window != NULL) {
-				engine->env = bkEnv_init(app, assetPack);
+				engine->env = bkEnv_init(app);
 				bk_drawFrame(engine);
 			}
 			break;
@@ -88,11 +86,6 @@ static void bk_handleCmd(struct android_app* app, int32_t cmd) {
 }
 
 void android_main(struct android_app* app) {
-
-	if (assetPack == NULL) {
-		assetPack = malloc(sizeof(bkAssetPack));
-		*assetPack = bkAssetPack_load(app->activity->assetManager);
-	}
 
 	bkEngine engine;
 

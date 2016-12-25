@@ -167,19 +167,19 @@ static int bk_initDisp(const struct android_app *app, bkEnv *env) {
 	return 1;
 }
 
-const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
+const bkEnv bkEnv_init(const struct android_app *app)
 {
 	bkEnv env;
 	if (bk_initDisp(app, &env)) {
 		GLuint buf[2];
 		glGenBuffers (2, buf);
 		glBindBuffer (GL_ARRAY_BUFFER, buf[0]);
-		glBufferData (GL_ARRAY_BUFFER, sizeof (GLfloat) * pack->meshBatch.vertsCount, pack->meshBatch.vertices, GL_STATIC_DRAW);
+		glBufferData (GL_ARRAY_BUFFER, sizeof (GLfloat) * bkMeshVertsLen, bkMeshVerts, GL_STATIC_DRAW);
 		env.vbo = buf[0];
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, buf[1]);
-		glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof (GLushort) * pack->meshBatch.indsCount, pack->meshBatch.indices, GL_STATIC_DRAW);
+		glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof (GLushort) * bkMeshTrIndsLen, bkMeshTrInds, GL_STATIC_DRAW);
 		env.ibo = buf[1];
-		env.indsCount = pack->meshBatch.indsCount;
+		env.indsCount = bkMeshTrIndsLen;
 		{
 			bkProgDepth p;
 
@@ -193,7 +193,7 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 			p.supportsDepthTex = 0;
 			#endif
 
-			const bkProgSrc *progSrc = p.supportsDepthTex ? &pack->depthExtProgSrc : &pack->depthProgSrc;
+			const bkProgSrc *progSrc = p.supportsDepthTex ? &bkProgSrcDepthExt : &bkProgSrcDepth;
 			p.program = bk_createProgram (progSrc->vertexShader, progSrc->fragmentShader);
 			if (p.program == 0)
 				return env;
@@ -214,7 +214,7 @@ const bkEnv bkEnv_init(const struct android_app *app, const bkAssetPack *pack)
 		}
 		{
 			bkProgDiffuse p;
-			const bkProgSrc *progSrc = env.programDepth.supportsDepthTex ? &pack->diffuseExtProgSrc : &pack->diffuseProgSrc;
+			const bkProgSrc *progSrc = env.programDepth.supportsDepthTex ? &bkProgSrcDiffuseExt : &bkProgSrcDiffuse;
 			p.program = bk_createProgram (progSrc->vertexShader, progSrc->fragmentShader);
 			if (p.program == 0)
 				return env;

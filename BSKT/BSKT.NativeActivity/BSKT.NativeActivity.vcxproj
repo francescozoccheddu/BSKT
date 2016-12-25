@@ -233,24 +233,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="android_native_app_glue.c" />
-    <ClCompile Include="bkAssets.c">
-      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">c89</CLanguageStandard>
-      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">c89</CLanguageStandard>
-      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">c89</CLanguageStandard>
-      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">c89</CLanguageStandard>
-      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">c89</CLanguageStandard>
-      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x86'">c89</CLanguageStandard>
-      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">c89</CLanguageStandard>
-      <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">c89</CLanguageStandard>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
-    </ClCompile>
+    <ClCompile Include="bkMeshes.c" />
+    <ClCompile Include="bkProgSrcs.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="bkSpace.c">
       <CLanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">c89</CLanguageStandard>

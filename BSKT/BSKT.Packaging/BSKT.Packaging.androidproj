@@ -126,8 +126,6 @@
     </AntPackage>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Content Include="assets\meshes\basket" />
-    <Content Include="assets\meshes\terrain" />
     <Content Include="res\values\strings.xml" />
     <AntBuildXml Include="build.xml" />
     <AndroidManifest Include="AndroidManifest.xml">
@@ -139,16 +137,6 @@
     <ProjectReference Include="..\BSKT.NativeActivity\BSKT.NativeActivity.vcxproj">
       <Project>{7fcf860e-a233-47aa-9240-b5045bd86858}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <JavaCompile Include="assets\shaders\depth\fragment_shader.glsl" />
-    <JavaCompile Include="assets\shaders\depth\vertex_shader.glsl" />
-    <JavaCompile Include="assets\shaders\depth_ext\fragment_shader.glsl" />
-    <JavaCompile Include="assets\shaders\depth_ext\vertex_shader.glsl" />
-    <JavaCompile Include="assets\shaders\diffuse\fragment_shader.glsl" />
-    <JavaCompile Include="assets\shaders\diffuse\vertex_shader.glsl" />
-    <JavaCompile Include="assets\shaders\diffuse_ext\fragment_shader.glsl" />
-    <JavaCompile Include="assets\shaders\diffuse_ext\vertex_shader.glsl" />
   </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />

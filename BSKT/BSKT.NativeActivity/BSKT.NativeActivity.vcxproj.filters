@@ -30,9 +30,6 @@
     <ClCompile Include="main.c">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="bkAssets.c">
-      <Filter>Game\sources</Filter>
-    </ClCompile>
     <ClCompile Include="bkState.c">
       <Filter>Game\sources</Filter>
     </ClCompile>
@@ -43,6 +40,12 @@
       <Filter>Game\sources</Filter>
     </ClCompile>
     <ClCompile Include="math3D.c">
+      <Filter>Game\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="bkMeshes.c">
+      <Filter>Game\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="bkProgSrcs.c">
       <Filter>Game\sources</Filter>
     </ClCompile>
   </ItemGroup>
